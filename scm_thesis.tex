@@ -9,14 +9,20 @@
 
 \newpage
 
-\tableofcontents
-
-\newpage
-
 % --- Abstract ---
 \begin{abstract}
 ABSTRACT
 \end{abstract}
+
+\newpage
+
+% --- Acknowledgements ---
+\section*{Acknowledgements}
+This work would not have been possible without the help of my Advisor Professor Stefanie Tellex, whose constant guidance and support was essential for the completion of this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their contributions to this project. We had many long discussions that led to much of the key ideas introduced here. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including Greg Yauney, Dilip Arumagum, etc etc.
+
+\newpage
+
+\tableofcontents
 
 \newpage
 
@@ -26,21 +32,32 @@ ABSTRACT
 % --- Background ---
 \section{Background}
 
+Why care about planning? Well, if we can formalize stuff in the right way, planning is a way of finding a sequence of actions for satisfying some condition.
+
+Conditions can be formulated arbitrarily, so if we had a perfect planning algorithm, we could identify optimal strategies in the real world for arbitrary goals! That's pretty incredible.
+
+In other words, planning has two pretty great properties: 1) it can represent just about any problem (at any level of abstraction), 2) advances in planning can then benefit a lot of stuff!
+
 \subsection{Planning}
+
+Planning is search! Older variants...
 
 \subsection{Stochastic Planning}
 
+Planning in the real world is a bad idea because of the stochasticity inherent in the world.
+
 \subsection{Markov Decision Process}
 
-\subsection{Hidden Parameter Markov Decision Process}
-
-\subsection{Object Oriented Markov Decision Process}
+We can represent this as MDPs.
 
 \subsection{Solving Markov Decision Processes}
+
+Since each of these just represents an MDP...
 
 \subsubsection{Complexity}
 Summary of Littman's paper.
 \subsubsection{Linear Programming}
+Necessary?
 \subsubsection{Value Iteration}
 
 Algorithm Overview.
@@ -52,6 +69,14 @@ Algorithm Overview.
 \subsubsection{RTDP}
 
 Algorithm Overview.
+
+\subsection{Object Oriented Markov Decision Process}
+
+MDPs are a pain to specify. Objects make sense as a means of representing errthang.
+
+\subsection{Hidden Parameter Markov Decision Process}
+
+George's Paper! Neat framework for transfer learning.
 
 
 \subsection{Transfer Learning}
@@ -85,14 +110,23 @@ Minecraft, other?
 % --- Goal-Based Action Priors
 \section{Goal-Based Action Priors}
 
-Affordances paper.
+\subsection{Approach}
+Meat of GBAP paper.
 
+Arbitrary model! We can use Naive bayes (results 1) or Log reg (results 2).
 
-Logistic Regression results.
+\subsection{Experiments}
+
+\subsection{Results}
+
+\subsection{Properties}
+Theorem about pruning?
 
 % --- Conclusion ---
 \section{Conclusion}
 
-
+% --- Bibliography ---
+\bibliographystyle{plain}
+\bibliography{main}
 
 \end{document}
