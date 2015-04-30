@@ -21,6 +21,7 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
+% THEOREMS AND DEFINITIONS
 \newcommand{\sk}{s}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lesson}{Lesson}
@@ -35,6 +36,14 @@
 \theoremstyle{remark}
 \newtheorem{example}{Example}
 \newtheorem*{remark}{Remark}
+
+% DEFINITION command
+%\newcounter{definitionCount}
+%\setcounter{definitionCount}{0}
+%\newcommand{\definition}[1]{
+%\addtocounter{definitionCount}{1}
+%\begin{mdframed}[backgroundcolor=gray!3,roundcorner=4pt]\textbf{ Definition \arabic{definitionCount}:} #1
+%\end{mdframed}}
 
 %==============================================================================
 % Macros.
@@ -53,6 +62,8 @@
 \newcommand{\spacerule}{\vspace{4mm}\hrule\vspace{4mm}} % Add an hrule with some space
 \newcommand{\dmod}[2]{\left[ #1\ \text{mod}\ #2\right]} % My mod rule
 \newcommand{\tab}[1]{\hspace{.2\textwidth}\rlap{#1}}
+
+
 
 % Misc lines and other formatting
 \newcommand{\encircle}[1]{\tikz[baseline=(char.base)]\node[anchor=south west, draw,rectangle, rounded corners, inner sep=2pt, minimum size=6mm, text height=2mm](char){#1} ;} % Circled text

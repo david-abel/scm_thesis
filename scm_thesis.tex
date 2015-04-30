@@ -1,36 +1,88 @@
 \documentclass[11pt]{article}
 \input{p.tex}
-\title{Stochastic Planning in Large State Spaces}
-\author{David Abel}
+\title{Learning to Plan in Complex Stochastic Environments}
+\author{David Abel \\ Advised by: Stefanie Tellex}
 \date{}
 
 \begin{document}
-\maketitle
+
+% TITLE PAGE
+\begin{titlepage}
+\begin{center}
+\vfill
+\textsc{\Large Brown University \\ Department of Computer Science}\\[1.5cm]
+
+\vspace{55mm}
+
+% Title
+{ \huge \bfseries Learning to Plan in Complex  \\Stochastic Environments \\[0.9cm] }
+
+% Author and supervisor
+\noindent
+\begin{minipage}[t]{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+\textsc{David Abel}
+\end{flushleft}
+\end{minipage}%
+\begin{minipage}[t]{0.4\textwidth}
+\begin{flushright} \large
+\emph{Supervisor:} \\
+\textsc{Prof. Stefanie Tellex}
+\end{flushright}
+\end{minipage}
+
+%\vspace{20mm}
+%\textsc{\Large Sc.M Project Document}\\[0.5cm]
+
+% Bottom of the page
+\vfill
+{\large May 2015}
+
+\end{center}
+\end{titlepage}
+% End of Title Page
 
 \newpage
 
 % --- Abstract ---
 \begin{abstract}
-ABSTRACT
+Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical technologies and application areas, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration\cite{bresina2005activity,backes1999automated,chien2000aspen}. Unfortunately, determining optimal solutions to probabilistic planning problems is known to be P-Complete~\cite{littman1995complexity} w.r.t. the problem complexity. This imposes a serious constraint the types of problems that may be solved in close to real time. In order to bolster our planning toolkit, we propose investigating methods of {\it learning to plan}. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to operate on the more complex problems that take advantage of prior knowledge of optimal behavior in similar tasks. In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planing algorithms according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and the priors are then used to solve for optimal behavior in state spaces that are far more complex.
 \end{abstract}
 
 \newpage
 
 % --- Acknowledgements ---
 \section*{Acknowledgements}
-This work would not have been possible without the help of my Advisor Professor Stefanie Tellex, whose constant guidance and support was essential for the completion of this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their contributions to this project. We had many long discussions that led to much of the key ideas introduced here. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including Greg Yauney, Dilip Arumagum, etc etc.
+This work would not have been possible without the help of my Advisor Professor Stefanie Tellex, whose constant guidance and support was essential for carrying out this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their critical contributions to this project, and for the many wonderful discussions that led to the central ideas introduced in this document. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including Professor Michael Littman, David Whitney, Jeremy Joachim, Izaak Baker, Ryan Izant, Greg Yauney, Dilip Arumagum, Miles Eldon, Stephen Brawner, Nakul Goppalan, Kevin O'Farrell, Emily Wu, and John Oberlin.
 
+% --- Table Of Contents ---
 \newpage
-
 \tableofcontents
-
 \newpage
 
 % --- Introduction ---
 \section{Introduction}
+\label{sec:introduction}
+
+% Why is planning so baller?
+
+
+\subsection{History}
+
+\subsection{Learning to Plan}
+An alternative approach is to {\it learn to plan}. In this sense, training  will slowly build up a set of skills, behaviors, and knowledge that dramatically simplify more complicated problems.
+The tractability of planning problems depends critically on problem difficulty, though with the proper prior knowledge, challenging problems may be decomposed into tasks for which optimal behavior is known.
+
+% What domains are we interested in?
+\subsection{Domains}
+%Domains of special interest are robotic navigation tasks that involve manipulation of the environment, such as pressing buttons, opening doors, and moving obstacles, as well as tackling more general problem solving strategies that include planning with 3D printers and programmable matter; suppose a robot could open a locked door by scanning the lock and printing the proper key. A composite robot-3D printer system would dramatically increase the scope of what robots can achieve. Robots could construct entire buildings on other planets, such as structures that offer protection from the harsh environments of foreign-atmospheres. The European Space Agency is already investigating using 3D printers to construct protective domes on the moon~\cite{ceccanti20103D,Cesaretti2014430} -- however, a 3D printer alone is stationary. The physical capabilities of a robot combined with the tool generation of a 3D printer offer many compelling advances in space exploration. If a part breaks on Mars, we need not send another entire mission to Mars, our robot can simply print another one. However, the space of printable objects is so massive that searching through possible futures is computationally intractable, calling for an advanced planning system that can reason over huge spaces, requiring succinct representations.
+
+
 
 % --- Background ---
 \section{Background}
+\label{sec:background}
 
 Why care about planning? Well, if we can formalize stuff in the right way, planning is a way of finding a sequence of actions for satisfying some condition.
 
@@ -41,6 +93,8 @@ In other words, planning has two pretty great properties: 1) it can represent ju
 \subsection{Planning}
 
 Planning is search! Older variants...
+
+General Problem solver!
 
 \subsection{Stochastic Planning}
 
@@ -76,17 +130,20 @@ MDPs are a pain to specify. Objects make sense as a means of representing errtha
 
 \subsection{Hidden Parameter Markov Decision Process}
 
-George's Paper! Neat framework for transfer learning.
+George's Paper! Neat framework for transfer learning.\cite{konidaris2014hidden}
 
 
 \subsection{Transfer Learning}
 
+\subsubsection{Agent Space}
 \subsubsection{Options}
 \subsubsection{Macroactions}
 
 
-% HIP OO-MDPs
-\section{HIP-OO-MDPs}
+
+% --- OOP-MDPs ---
+\section{OOP-MDPs}
+\label{sec:oop_mdps}
 
 \subsection{Preliminaries}
 
@@ -95,7 +152,7 @@ Idea: Domain is everything but R and S, but includes the object classes and stuf
 
 Task: An assignment to the parameter vector theta (includes number of objects, attribute assignments, etc.)
 
-Problem Generator: an randomized poly-time turing machine that scrambles up the values of theta.
+{\definition A \textup{Problem Generator} is a randomized poly-time turing machine that samples from the disitribution associated with the OOP-MDP and returns a OO-MDP}
 
 \subsubsection{Domains}
 
@@ -104,23 +161,38 @@ Minecraft, other?
 
 % --- Action Pruning ---
 \section{Action Pruning}
-
+\label{sec:action_pruning}
 
 
 % --- Goal-Based Action Priors
 \section{Goal-Based Action Priors}
+\label{sec:gbaps}
+
+
 
 \subsection{Approach}
 Meat of GBAP paper.
 
 Arbitrary model! We can use Naive bayes (results 1) or Log reg (results 2).
 
+
+
+
+
+\section{Evaluation}
+\label{sec:evaluation}
+
 \subsection{Experiments}
 
 \subsection{Results}
 
-\subsection{Properties}
-Theorem about pruning?
+
+
+
+
+
+\subsection{Analysis}
+
 
 % --- Conclusion ---
 \section{Conclusion}
