@@ -9,8 +9,10 @@
 %\usepackage{newalg}
 \usepackage{amssymb}
 \usepackage{latexsym}
+\usepackage{subfigure}
 \usepackage{graphicx}
 \usepackage{wasysym}
+\usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{mathtools}
 \usepackage[makeroom]{cancel}
@@ -63,7 +65,7 @@
 \newcommand{\dmod}[2]{\left[ #1\ \text{mod}\ #2\right]} % My mod rule
 \newcommand{\tab}[1]{\hspace{.2\textwidth}\rlap{#1}}
 
-
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}} % booktabs table cmd for spacing
 
 % Misc lines and other formatting
 \newcommand{\encircle}[1]{\tikz[baseline=(char.base)]\node[anchor=south west, draw,rectangle, rounded corners, inner sep=2pt, minimum size=6mm, text height=2mm](char){#1} ;} % Circled text
