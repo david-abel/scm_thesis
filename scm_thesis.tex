@@ -94,7 +94,7 @@ Computing optimal solutions to MDPs is known to be P-Complete~\cite{littman1995c
 To confront the state-action space explosion that accompanies complex tasks, prior work has explored adding knowledge to the planner, such as options~\cite{sutton99} and macro-actions~\cite{Botea:2005kx,Newton:2005vn}.  However, while these methods allow the agent to search more deeply in the state space, they add non-primitive actions to the planner which {\em increase} the branching factor of the state-action space.  The resulting augmented space is even larger, which can have the paradoxical effect of increasing the search time for a good policy~\cite{Jong:2008zr}. Deterministic forward-search algorithms like hierarchical task networks (HTNs)~\cite{Nau:1999:SSH:1624312.1624357}, and temporal logical planning (TLPlan)~\cite{Bacchus95usingtemporal,Bacchus99usingtemporal}, add knowledge to the planner that greatly increases planning speed, but do not generalize to stochastic domains. Additionally, the knowledge provided to the planner by these methods is quite extensive, reducing the agent's autonomy.
 
 % Learning to plan.
-In this work, we propose a general strategy of {\it learning to plan}, in which a planning algorithm is given access to optimal solutions to simple tasks, and then asked to solve complex tasks from the same domain. The key insight is that the planner may transfer knowledge about optimal behavior from the simple tasks to the more difficult tasks. To support this strategy, we introduce the Object-Oriented Parameterized Markov Decision Process, which is critical to the terminology that underlies this work.
+In this work, we propose a general framework for {\it learning to plan}, in which a planning algorithm is given access to optimal solutions to simple tasks, and then asked to solve complex tasks from the same domain. The key insight is that the planner may transfer knowledge about optimal behavior from the simple tasks to the more difficult tasks. To support this strategy, we introduce the Object-Oriented Parameterized Markov Decision Process, which is critical to the terminology that underlies this work.
 
 % GBAPs
 In particular, we develop {\it goal-based action priors}, that maintain a probability distribution on the optimality of each action. During training, the planner gets query access to the optimal behavior in a series of training tasks which informs these priors. During testing, the planner uses the priors to dramatically reduce state-action space exploration, while still finding a near optimal policy. We evaluate our approach in the 3D blocks world Minecraft in several difficult challenges, including constructing a bridge over a trench, and digging underground to find a gold block.
@@ -119,14 +119,13 @@ Domains of special interest are robotic navigation tasks that involve manipulati
 % Minecraft
 In this document, we consider two domains. The first is the 3D blocks world, Minecraft. Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types.
 Minecraft's physics and action space are extremely expressive and allow users to create complex objects and systems, including logic gates and functional scientific graphing calculators.
-Minecraft serves as a model for complicated real world systems such as robots
-traversing complex terrain, and large scale construction projects involving highly malleable environments.  As in these tasks, the agent operates in a
+Minecraft serves as a model for complicated real world systems such as robots traversing complex terrain, and large scale construction projects involving highly malleable environments.  As in these tasks, the agent operates in a
 very large state-action space in an uncertain environment. Figure~\ref{fig:minecraft} shows three example scenes from Minecraft problems that we solve.
 
 % Robo-cooking.
 
 % Outline.
-The outline of this document is as follows. In the remainder of Section 1, we summarize the basic framework for learning to plan. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:learning_to_plan}, we introduce a new model, the Object-Oriented Parameterized Markov Decision Process, that supports much of the terminology introduced in this document. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce Goal-Based Action Priors, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
+The outline of this document is as follows. In the remainder of Section 1, we summarize the basic framework for learning to plan. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:learn_to_plan}, we introduce a new model, the Object-Oriented Parameterized Markov Decision Process, that supports much of the terminology introduced in this document. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce Goal-Based Action Priors, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
 
 
 % --- Background ---
@@ -261,16 +260,27 @@ independence by using OO-MDP predicates to create an intermediary representation
 
 {\definition Let \textup{Agent Space} refer to a collection of predicates $\mathcal{P}_{agent}$ that relate the $agent$ object to other objects in the task}.
 
-%\subsection{Hidden Parameter Markov Decision Process}
-%
-%George's Paper! Neat framework for transfer learning.\cite{konidaris2014hidden}
-%
 
+Since all of our decision making problems are at their core, planning problems, we will be interested in goal-directed MDPs. Specifically, the reward function associated with each problem will be a {\it goal-direction reward function}: \\
+
+{\definition A \textup{Goal-Based Reward Function} is a reward function defined by a characteristic predicate. That is, the output of the reward function is one of two values, $r_{goal}$, or $r_{\emptyset}$. We say that the predicate $p$ defines the reward function $\mathcal{R}$ relative to $r_{goal}$ and $r_\emptyset$ when:
+
+\begin{equation}
+\mathcal{R}_p(s) = \begin{cases}
+r_{goal}& p(s) \\
+r_{\emptyset}&\neg p(s)
+\end{cases}
+\end{equation}}
 
 % - Transfer Learning -
 \subsection{Transfer Learning}
 
-\subsubsection{Agent Space}
+Neat idea: Random policy (samples uniformly for each action in each state). The expected cumulative reward for Rando Policy is RandValFunc or something.
+
+Q: What is the difference between RandValFunc and Optimal?
+
+This gets at the notion of problem difficulty?
+
 
 \subsubsection{Temporally Extended Actions}
 
@@ -294,113 +304,96 @@ different state spaces, creating {\em portable} options is a topic of
 active
 research~\cite{konidaris07,konidaris2009efficient,Ravindran03analgebraic,andre2002state,konidaris2012transfer}.
 
-Since temporally extended actions may negatively impact planning
-time~\cite{Jong:2008zr} by adding to the number of actions the agent
-can choose from in a given state, combining our priors with
-temporally extended actions allows for even further speedups in
-planning, as demonstrated in Table~\ref{table:temp_ext_act_results}. In
-other words, goal-based action priors are complementary knowledge to options and
-macro-actions.
-
-
-\subsubsection{Macroactions}
+%Since temporally extended actions may negatively impact planning
+%time~\cite{Jong:2008zr} by adding to the number of actions the agent
+%can choose from in a given state, combining our priors with
+%temporally extended actions allows for even further speedups in
+%planning, as demonstrated in Table~\ref{table:temp_ext_act_results}. In
+%other words, goal-based action priors are complementary knowledge to options and
+%macro-actions.
 
 
 
-% --- OOP-MDPs ---
+% --- Learning to Plan ---
 \section{Learning To Plan}
-\label{sec:learn_to_plan}
+\label{sec:learning_to_plan}
 
-We now introduce the definitions at the core of {\it learning to plan}. Again, the motivation is to tackle extremely complex stochastic planning problems by first solving simple related problems. We now establish the models and definitions necessary to precisely show what is meant by related tasks. In particular, we defines the Object-Oriented Paramterized Markov Decision Process that enables us to cleanly define the notions of {\it domain}, {\it task}, and {\it task generators}, which are critical for advancing methods that learn to plan.
+We now introduce the definitions at the core of the framework for how an agent can learn to plan. \\
+% Domain definition.-
+{\definition A \textup{Domain}, denoted $D$, is a five tuple, $\langle \mathcal{C}, \textsc{Att}(c), \mathcal{A}, \mathcal{T}, \textsc{Dom}(a) \rangle$, where each element is defined as in the OO-MDP definition.} 
 
-\subsection{OOP-MDPs}
-In particular, we are interested in families of related MDPs. To cleanly denote the relationship between the training tasks and test tasks, we introduce a new model, the Object-Oriented Parameterized MDP, which naturally models families of related MDPs while maintaining the representational richness of the OO-MDP. \\
+% Discussion of domain, why this captures what we want it to capture, example w/ Grid world.
 
-{\definition An \textup{Object Oriented Parameterized Markov Decision Process (OOP-MDP)} is an five tuple, $\langle \theta, \mathcal{C}, \textsc{Att}(c),
-\mathcal{A}, \mathcal{T}, \rangle$, where:
+% Grid World domain
+This notion of a domain accurately reflects a particular problem space. Consider the Grid World domain, defined as follows:
+\begin{itemize}
+\item $\mathcal{C} = \{\texttt{agent}, \texttt{wall}, \texttt{borderWall}\}$
+\item $\textsc{Att}(c) = \{(\texttt{agent} : x, y), (\texttt{wall} : x, y), (\texttt{borderWall} : length, horizontal)\}$
+\item $\mathcal{A} = \{\texttt{north}, \texttt{east}, \texttt{south}, \texttt{west}\}$
+\item $\textsc{Dom}(a) = \{\texttt{x} \in \mathbb{N}, \texttt{y} \in \mathbb{N},  \texttt{length} \in \mathbb{N}, \texttt{horizontal} \in \{0,1\}\}$
+\end{itemize}
+
+This is broadly what we are interested in when we think of grid world problems - an agent moving around a 2-Dimensional grid, possibly bumping into walls. Now we discuss a specific {\it task}, indicating a particular problem an agent is supposed to solve: \\
+
+% Task definition
+{\definition A \textup{Task} is a fully specified OO-MDP. A task $\tau$ belongs to the domain $D$ just in case $\tau.\mathcal{C} = D.\mathcal{C}, \tau.\mathcal{T} = D.\mathcal{T}, \tau.\textsc{Att}(c) = D.\textsc{Att}(c), \tau.\mathcal{A} = D.\mathcal{A}$}.
+
+
+That is, PICTURE denotes a specific task belonging to the grid world domain. Significantly, the grid world domain $D$ contains infinitely many tasks, since $\textsc{Dom}(c)$ allows for an infinite space of attribute assignments. Next, we introduce the {\it Task Generator}, which is central to considering related problems.
+
+% Task Generator definition
+{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D$ and a set of constraints $\theta$, and outputs a task, $\tau \in D$, such that the constraints specified by $\theta$ are true of $\tau$.}
+
+In short, we can define a domain $D$, (consider the GridWorld domain specified above), and generate random tasks from that domain. Critically, task generators are {\it randomized} - this ensures that repeated queries to a task generator with the same domain and constraints result in different tasks.
+
+The constraints, $\theta$, consists of two sets:
 
 \begin{itemize}
-\item $\theta$ is a parameter vector, $\langle (a_1, x_1, y_1), \ldots, (a_k, x_k, y_k) \rangle$, denoting the range of possible values that attributes $a_1, \ldots, a_k$ may take on.
-\item $\textsc{Dom}_\theta(a_i)$ is a function $A \mapsto [\theta(a_i).x_i,\theta(a_i).y_i]$, s.t. $\{n \in \mathbb{N} \mid \theta(a_i).x_i \leq n \leq \theta(b_i).y_y \}$, that specifies the space of possible values for an attribute $a_i$.
-\end{itemize}}
+\item $\theta_{A}$ is a set of constraints on attribute ranges. Namely, $\theta_{A} = \{ (a_1, x_1, y_1), \ldots, (a_k, x_k, y_k) \}$, where each triple denotes the range of possible values that attributes $a_1, \ldots, a_k$ may take on.
+\item $\theta_{P}$ is a set of logical constraints. Namely, $\theta_P = \{p_1, \ldots p_n\}$, where $p_i$ is a predicate.
+\end{itemize}
 
-Elements of the tuple not mentioned are defined exactly as in the OO-MDP. It is worth noting that the space of attributes need not be restricted to the natural numbers, $\mathbb{N}$. The primary domains considered in this work are all discrete, so natural attribute values were convenient, though one could alternatively consider real-valued attributes, complex attributes, and so on. The critical feature of the OOP-MDP is that it allows us to define a family of related tasks, while still allowing a certain degree of flexibility between the tasks.
+The attribute constraints $\theta_A$ modify the function $\textsc{Dom}(a)$ in the following way:
 
-In particular, the following elements are left undefined at the OOP-MDP level:
-\begin{enumerate}[(i)]
-\item $\mathcal{O}$: the specific set of object instances. This allows for different tasks of the same domain to have different object instances. Consider two different cases of the Taxi domain, the first of which has two passengers and the second of which has three - we want to say these tasks belong to the same domain.
-\item $\mathcal{R}$: the reward function. Consider a grid world. If the agent is trying to plan to go the center as opposed to the top right corner, we'd like to say these tasks belong to the same domain.
-\item $\gamma$: Similarly to the reward function, an agent's preference for short term or long term reward does not change the space of planning problems we are considering.
-\item $\theta $: As discussed, leaving $\theta$ unspecified lets us talk about the space of possible problems in the domain. Large grid worlds, small grid worlds, and so on.
-\end{enumerate}
+\begin{itemize}
+\item $\textsc{Dom}_\theta(a_i)$ is modified such that, $A \mapsto [\theta(a_i).x_i,\theta(a_i).y_i]$, s.t. $\{n \in \mathbb{N} \mid \theta(a_i).x_i \leq n \leq \theta(b_i).y_y \}$, that specifies the space of possible values for an attribute $a_i$.
+\end{itemize}
 
-Next, we provide definitions for a number of notions central to the learning to plan framework.
+The logical constraints may modify any other aspect of the OO-MDP representing the task $\tau$. For instance, we might imagine a constraint necessitating the existence of an object of a particular class: $\exists o \in \mathcal{O} class(o) = \texttt{agent}$, indicating that there must exist at least one agent. We could imagine extending these constraints to denote some interesting properties of tasks:
 
-\subsection{Definitions}
-
-{\definition A \textup{Domain} is an OOP-MDP instance where $\theta$ is unspecified. That is, the set of possible attribute values that objects in the domain may take on, defined by $\theta$, is undefined. Note that the set of object instances, $\gamma$, $\textsc{Dom}(a)$, and the reward function are all undefined, too.}
-
-When a domain is parameterized by $\theta$, that is, $\theta$ is specified, we denote the domain as $D_\theta$.
-
-This notion of a domain lets us talk conveniently about families of related problems. That is, in the case of grid world, the reward function specifies the task the agent is trying to achieve within grid world - perhaps the agent is trying to get to one of the corners, or navigate to a specific location at the center of the grid while avoiding other locations. At the {\it domain} level, we don't care about the details of the specific task.
-
-Additionally, the parameter vector $\theta$ lets us conveniently modify convenient characteristics of the problem space, which is desirable at the domain level of description. Consider a grid world domain; one could imagine the object class \texttt{borderWall} that denotes the border of the grid. If the attribute \texttt{borderWall.length} were fixed to $4$, then we'd be left with a $4\times4$ grid world.
-
-Thus, $\theta$ lets us vary the complexity of the task in a significant way. If $\theta = \langle (\texttt{borderWall}.length,2,10) \rangle$, then the OOP-MDP parameterized by $\theta$ lets us consider grid world problems that range from $2\times2$ to $10\times10$.
-
-Within a domain, a task is a single problem that we'd like to solve, defined by a fully specified OO-MDP: \\
-
-{\definition A \textup{Task} is a fully specified OO-MDP. A task $\tau$ belongs to the domain $D$ just in case $\tau.\mathcal{C} = D.\mathcal{C}, \tau.\mathcal{T} = D.\mathcal{T}, \tau.\textsc{Att}(c) = D.\textsc{Att}(c), \tau.\mathcal{A} = \tau.\mathcal{A}$}.
-
-
-Now, we are able to introduce one of the most convenient developments of this perspective of planning, a problem generator: \\
-
-{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D_\theta$, a reward function $\mathcal{R}$, $\gamma$, and a set of constraints $C$, and returns a fully specified task. The Task Generator samples from the uniform distribution over $\theta$, assigns $\textsc{Dom}((a)$ accordingly, and generates object instances for each class according to the constraints $C$ and attribute domains $\textsc{Dom}(a)$ dictated by $\theta$.}
+% Properties that can be specified with these constraints
+\begin{itemize}
+\item Prop 1
+\item Prop 2
+\end{itemize}
 
 % Shoutout to PAC.
-Alternatively, we may consider a Task Generator a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over $\theta$. That is, $\theta$ defines the space of possible values for a random variable $\Theta$. Or something.. This consideration allows interesting extensions to the computational learning theory literature, as established by the PAC framework. Note that different values of $\theta$ will lead to two different and possibly disjoint distributions over tasks.
-
-
-Next we introduce a goal based reward function, which is highly convenient for many goal-directed planning problems: \\
-
-{\definition A \textup{Goal-Based Reward Function} is a reward function defined by a characteristic predicate. That is, the reward function takes on two values, $r_{goal}$, and $r_{\emptyset}$. We say that the predicate $p$ defines the reward function $\mathcal{R}$ relative to $r_{goal}$ and $r_\emptyset$ when:
-
-\begin{equation}
-\mathcal{R}_p(s) = \begin{cases}
-r_{goal}& p(s) \\
-r_{\emptyset}&\neg p(s)
-\end{cases}
-\end{equation}}
+\subsection{Computational Learning Theory}
+Alternatively, we may view a Task Generator as a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over the constraints $\theta$. That is, consider the space of tasks where the constraints $\theta.P$ are all satisfied. Then $\theta.A$ defines the space of possible values for a random variable. This consideration allows interesting extensions to Probably Approximately Correct framework. Note that different values of $\theta$ will lead to two different and possibly disjoint distributions over tasks. This problem structure lets us consider variants to the PAC problem wherein the training distribution is disjoint from the test distribution, but is related in virtue of the tasks belonging to the same domain. In future work, we would like to investigate this relationship.
 
 
 \subsection{Agent Space}
 Consider two tasks $\tau_1$ and $\tau_2$, both belonging to the same domain $D$. The critical observation is that knowledge acquired by solving $\tau_1$, that is, computing the optimal policy $\pi_1$, may be useful when solving $\tau_2$. Consider the case that $\tau_1 = \tau_2$. Then clearly determining the optimal policy for $\tau_2$ is trivial.
 
-Consider that $\tau_1$ and $\tau_2$ both have Goal-Based Reward Functions operating under predicate $p$. Furthermore, we know that the space of classes, $D.\mathcal{C}$ is shared between the two tasks, and that the action space, transition dynamics, and space of attributes is the same between the two.
+Consider that $\tau_1$ and $\tau_2$ both have Goal-Based Reward Functions operating under predicate $p$. Furthermore, since $\tau_1, \tau_2 \in D$, we know that the space of classes, $D.\mathcal{C}$, the action space, transition dynamics, and space of attributes is shared between the two tasks.
 
-Thus, the idea is to use our knowledge of what is shared between two tasks belonging to the same domain in order to translate between them. Since the both $\tau_1$ and $\tau_2$ share object classes, we know that predicates operating on objects are guaranteed to preserve some saliency across tasks. Relations among objects will still be true between tasks. This is the critical point.
-
-Specifically, all agent-driven planning domains modeled as an OOP-MDP will have an object class $\texttt{agent} \in \mathcal{C}$. Therefore, predicates that relate the attributes of the agent 
-
-% --- Action Pruning ---
-\section{Action Pruning}
-\label{sec:action_pruning}
-
+Thus, the idea is to use our knowledge of what is shared between two tasks belonging to the same domain in order to {\it translate} between them. Since the both $\tau_1$ and $\tau_2$ share object classes, we know that predicates operating on objects are guaranteed to preserve meaning across tasks. Critically, relations among objects will still be relevant across tasks. For instance, predicates that operate on the attributes of the agent will necessarily transfer between $\tau_1$ and $\tau_2$, assuming these tasks were generated under the constraint that an agent object exists in the task.
 
 % --- Goal-Based Action Priors
 \section{Goal-Based Action Priors}
 \label{sec:gbaps}
 
-To address state-action space explosions in robotic planning tasks,
-we augment an OO-MDP instance with a
-specific type of action prior conditioned on the current state and an abstract goal description. This {\it goal-based action prior}
+To address state-action space explosions in planning tasks,
+we investigate learning an action prior conditioned on the current state and an abstract goal description. This {\it goal-based action prior}
 enables an agent to prune irrelevant actions on a
 state-by-state basis according to the agent's current goal, focusing the agent on
-the most promising parts of the state space.  
+the most promising parts of the state space. The agent will learn these priors from solving simple task instances and use this knowledge on more complex tasks generated from the same Task Generator.
  
 Goal-based action priors can be specified
 by hand or learned by repeated queries to a Task Generator for a given domain $D$, making them a concise, transferable, and learnable means of
-representing useful planning knowledge. Our results demonstrate
+representing useful planning knowledge. 
+
+Our results demonstrate
 that these priors provide dramatic improvements for a variety of
 planning tasks compared to baselines in simulation, and are applicable
 across different tasks.  Moreover, while manually provided
@@ -420,13 +413,8 @@ encountered (like the problem in the right image). All associated code with this
 http://h2r.cs.brown.edu/affordances.
 
 
-
 \subsection{Approach}
-Meat of GBAP paper.
-
-Arbitrary model! We can use Naive bayes (results 1) or Log reg (results 2).
-
-We define a {\it goal-based action prior} as knowledge added to an OOP-MDP.
+We define a {\it goal-based action prior} as knowledge provided to a planning algorithm to help reduce problem complexity. These priors are used to prune actions on a state by state basis, which naturally reduces the number of state-action pairs the agent needs to evaluate. The key observation is that for action-rich domains (i.e. $\mathcal{A}$ is large), many actions are not relevant in every state, but are still relevant at some point in the task. Using goal-based action priors, an agent will be biased toward the most relevant action applications for each state, encouraging the agent to explore the most promising paths through the problem.
 
 % -- Figure: Minecraft pic --
 \begin{figure}[t]
@@ -445,7 +433,7 @@ We define a {\it goal-based action prior} as knowledge added to an OOP-MDP.
 % -- Subsection: Modeling the Optimal Actions --
 \subsection{Modeling the Optimal Actions}
 
-Our goal is to formalize planning knowledge that allows an agent to
+The goal is to formalize planning knowledge that allows an agent to
 avoid searching suboptimal actions in each state based on the agent's
 current goal. We define the optimal action set, $\mathcal{A}^*$, for a
 given state $s$ and goal $G$ as:
@@ -468,8 +456,6 @@ distribution for each action's optimality:
 
 \noindent for $i \in \{1, \ldots, |\mathcal{A}|\}$, where
 $\mathcal{A}$ is the OO-MDP action space for the domain.
-
-CRUCIAL: Agent Space:
 
 The agent space representation of the problem is abstracted
 into a set of $n$ paired preconditions and goals, $\{
@@ -511,11 +497,11 @@ $\phi_j = f(\delta_j, s, G)$, which we use to reformulate our probability distri
 \label{eq:feature_rep}
 \end{equation}
 
-Emphasize how crucial this equation is.
+This equation models how optimal each action is given a state, and goal. Critically, we can rewrite the lefthand side of the equation in terms of $\phi_1, \ldots, \phi_n$, which is an agent space representation of the current state. This intermediary representation is exactly what enables our agent to transfer these priors from a set of training tasks to an arbitrary task from the same domain.
 
-This distribution may be modeled in a number of ways, making this
-approach quite flexible. 
+Furthermore, this distribution may be modeled in a number of ways, making this approach extremely flexible.
 
+% Expert Model
 {\bf Expert Model:} One model that can be easily specified by
 an expert is an OR model.
 In the OR model some subset of the features 
@@ -556,35 +542,46 @@ feature weights:
 
 % -- Equation: Bayes --
 \begin{equation}
-= \frac{\Pr(\phi_1, \ldots, \phi_{n}, \mid a_i \in \mathcal{A}^*, \theta_i) \Pr(a_i \in \mathcal{A}^* \mid \theta_i)}{\Pr(\phi_1, \ldots, \phi_{n} | \theta_i)}
+\Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n) = \frac{\Pr(\phi_1, \ldots, \phi_{n}, \mid a_i \in \mathcal{A}^*, \theta_i) \Pr(a_i \in \mathcal{A}^* \mid \theta_i)}{\Pr(\phi_1, \ldots, \phi_{n} \mid \theta_i)}
 \label{eq:bayes}
 \end{equation}
 
 Next we assume that each feature is conditionally independent of the others, given whether the action is optimal:
 % -- Equation: Naive assumption and uniform prior--
 \begin{equation}
-= \frac{\prod_{j=1}^{n} \Pr(\phi_j \mid a_i \in \mathcal{A}^*, \theta_i) \Pr(a_i \in \mathcal{A}^* \mid \theta_i) }{\Pr(\phi_1, \ldots, \phi_{n} | \theta_i)}
+= \frac{\prod_{j=1}^{n} \Pr(\phi_j \mid a_i \in \mathcal{A}^*, \theta_i) \Pr(a_i \in \mathcal{A}^* \mid \theta_i) }{\Pr(\phi_1, \ldots, \phi_{n} \mid \theta_i)}
 \label{eq:final}
 \end{equation}
 
 Finally, we define the prior on the optimality of each action to be
 the fraction of the time each action was optimal during training.
 
-
 \subsubsection{Logistic Regression}
 
-NEED MATH
+In Logistic Regression, classification is computed by a logistic threshold function. That is, a vector of weights $\vec{w}$ is learned that determines the optimal decision boundary:
+\begin{equation}
+\textsc{LogReg}(s) = \frac{1}{1 + e^{-\vec{w} \cdot \phi(s)}}
+\end{equation}
 
+Where $\phi(s)$ denotes the agent space features extracted from the state $s$ introduced above. Then, our decision rule for classification is simply:
+\begin{equation}
+\begin{cases}
+1&\textsc{LogReg}(s) \geq 0.5 \\
+0&\text{otherwise}
+\end{cases}
+\end{equation}
+
+One could consider using any model at this stage - the important point is that planning has been restructured into a learning problem.
 
 % -- Subsection: Learning the Optimal Actions--
 \subsection{Learning the Optimal Actions}
-Using the above model allows us to learn goal-based action priors
-through experience. We provide a set of
-training worlds from the domain ($W$), for which the optimal policy,
-$\pi$, may be tractably computed using existing planning methods.  We
-compute model parameters using the small training worlds, and then
-evaluate performance on a different set of much harder problems at
-test time.  To compute model parameters using Naive Bayes, we compute
+For learning we consider a Task Generator $\Omega$, a domain $D$, and a set of constraints, $\theta$. These constraints will force the tasks output by $\Omega$ to be sufficiently small (i.e. small enough so that tabular approaches like Value Iteration can solve for the optimal policy).
+
+We generate $n$ training tasks, $\tau_1, \ldots, \tau_n$, and solve for the optimal policy in each task, $\pi_1, \ldots, \pi_n$.
+
+Using the optimal policies across these tasks, we can learn the model parameters for the Naive Bayes model, or can inform the weights for the Logistic Regression model.
+
+To compute model parameters using Naive Bayes, we compute
 the maximum likelihood estimate of the parameter vector $\theta_i$ for
 each action using the policy.
 
@@ -606,6 +603,15 @@ C(\bar{a_i}) &= \sum_{w \in W} \sum_{s \in w} (a_i \not \in \pi_w(s) ) \\
 C(\phi_j, a_i) &= \sum_{w \in W} \sum_{s \in w} (a_i  \in \pi_w(s) \wedge \phi_j == 1)
 \end{align}
 
+To compute the optimal decision boundary for Logistic Regression, we compute gradient descent using the $L_2$ loss function, resulting in the following update rule:
+
+\begin{equation}
+w_i \leftarrow w_i + \alpha(y - \textsc{LogReg}(s)) \times \textsc{LogReg}(s)(1 - \textsc{LogReg}(s))
+\end{equation}
+
+We optimize until convergence.
+
+
 During the learning phase, the agent learns when actions are useful
 with respect to the agent space features.  For example, consider the three different
 problems shown in Figure~\ref{fig:minecraft}.  During training, we observe
@@ -621,6 +627,7 @@ smelt gold and looking at gold ore, but not in other situations
 (unless the prior suggests using \texttt{destroy}). Example
 learned priors are shown in~\ref{fig:example_affs}.
 
+% Sample priors
 \begin{figure}
 \centering
 \subfigure[agentLookTowardGoal]{
@@ -631,11 +638,7 @@ learned priors are shown in~\ref{fig:example_affs}.
 \caption{When the agent is looking toward its goal location, it is generally better to move forward than do anything else. Alternatively, when the agent is faced with a trench, the agent should walk along the trench to look for gaps, or build a bridge across by looking down and placing blocks.}
 \end{figure}
 
-At test time, the agent will see different, randomly generated worlds
-from the same domain, and use the learned priors to increase its
-speed at inferring a plan.  For simplicity, our learning process uses
-a strict separation between training and test; after learning is
-complete our model parameters remain fixed.
+At test time, we query $\Omega$ with a different set of constraints, $\phi$ but the same domain $D$. Notably, $\phi$ will necessitate larger, more complicated tasks than those trained on. For simplicity, our learning process uses a strict separation between training and test; after learning is complete our model parameters/weights remain fixed.
 
 % -- Subsection: Action Pruning --
 \subsection{Action Pruning with Goal-Based Action Priors}
@@ -648,32 +651,33 @@ $\Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n) = 1$,
 action $a_i$ remains in the action set to be searched by the planner.
 
 % What to do with logreg/naive bayes
+Under Naive Bayes, we found that the optimal decision rule resulted in poor performance. Instead, we imposed a more conservative threshold, only pruning away actions if they were extremely unlikely to be sub-optimal.
 
+Under Logistic Regression, we used the optimal decision rule to determine which actions were to be considered in each state.
 
 
 % -- EVALUATION --
 \section{Evaluation}
 \label{sec:evaluation}
 
-We evaluate our approach using the game Minecraft. Minecraft is a 3-D blocks game in which the
+We evaluate our approach using the game Minecraft. Minecraft is a 3D blocks game in which the
 user can place, craft, and destroy blocks of different types.
 Minecraft's physics and action space allow users to create complex
 systems, including logic gates and functional scientific graphing
 calculators.
 
-Minecraft serves as a model for robotic tasks such as cooking
-assistance, assembling items in a factory, object retrieval, and
-complex terrain traversal.  As in these tasks, the agent operates in a
-very large state-action space in an uncertain environment.
-Figure~\ref{fig:minecraft} shows three example scenes from Minecraft
-problems that we explore.  Additionally, we used expert-provided priors to
+Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types.
+Minecraft's physics and action space are extremely expressive and allow users to create complex objects and systems, including logic gates and functional scientific graphing calculators.
+Minecraft serves as a model for complicated real world systems such as robots traversing complex terrain, and large scale construction projects involving highly malleable environments.  As in these tasks, the agent operates in a very large state-action space in an uncertain environment. Figure~\ref{fig:minecraft} shows three example scenes from Minecraft problems that we solve.
+
+Additionally, we used expert-provided priors to
 enable a manipulator robot to infer helpful actions in response to a
 person working on a kitchen task, shown in Figure~\ref{fig:baxter_results}.
 
 
 \subsection{Experiments}
 
-Our experiments consist of five common goals in Minecraft:
+Our experiments consist of five common tasks in Minecraft:
 bridge construction, gold smelting, tunneling through
 walls, digging to find an object, and path planning.
 
