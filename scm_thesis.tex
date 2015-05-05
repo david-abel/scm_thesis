@@ -47,7 +47,17 @@
 
 % --- Abstract ---
 \begin{abstract}
-Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state}, to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior}, to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. However, computing optimal solutions to probabilistic planning problems is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time. One option is to give planning algorithms knowledge about the problem of interest; this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer over to different tasks. As a result, each new task requires a new body of knowledge. Alternatively, we investigate the setting of {\it learning to plan}, in which useful planners acquire useful domain knowledge about how to solve extremely complex problems from a small training set of planning problems. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by taking advantage of prior knowledge of optimal behavior in similar tasks. In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planing algorithms according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and are then used to solve for optimal behavior in state spaces that are far more complex. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that the framework of {\it learning to plan} is a compelling means of scaling planning algorithms to meaningful levels.
+% Planning is legit but it's hard.
+Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state}, to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior}, to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. However, computing optimal solutions to these problems is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time.
+
+% We can scale by providing knowledge, but then you have to hand engineer knowledge
+One way of scaling planning algorithms to larger, more complex problems is to provide planners knowledge about the task of interest; this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer between slight variants of the same task. As a result, each new problem instance requires a newly engineered body of knowledge.
+
+% By learning to plan, we can solve families of related problems.
+Alternatively, we propose {\it learning to plan}, in which planners acquire useful domain knowledge about how to solve families of related problems from a small training set of tasks, eliminating the need for hand engineering knowledge. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by learning about the structure of optimal behavior in the training tasks. We introduce the Object-Oriented Parameterized Markov Decision Process, which provides the backbone for this investigation.
+
+% Specific approach. (gbaps)
+In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planners according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and whose solutions inform the planner about optimal behavior in much more complex tasks from the same domain. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that {\it learning to plan} is a compelling means of scaling planning algorithms to solve families of complex tasks without the need for hand engineered knowledge.
 \end{abstract}
 
 \newpage
@@ -66,37 +76,57 @@ This work would not have been possible without the guidance of my Advisor Profes
 \label{sec:introduction}
 
 % Why is planning so baller?
-Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. Here we differentiate between probabilistic planners and deterministic planners, as deterministic planning boils down to search through a graph. The existence of an efficient probabilistic planning algorithm would directly contribute to an assortment of exciting application areas, as effectively any problem can be formulated in terms of a planning problem. The requirement that the space be stochastic ensures that we are planning in the real world - this assumption is directly motivated by the application areas of interest, namely, problems in the real world.
+Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. It is not altogether surprising that planners have contributed to such disparate fields - under the right lens, the framework of planning is simply a versatile approach to abstract problem solving. Any problem for which a notion of a goal may be expressed, in some sense, can be represented as a planning problem. The representational richness inherent in First Order Logic offers a succinct characterization of goals; given some representation of the problem space, are some first order predicates true for a particular configuration of the environment? All that remains is to specify the starting conditions, and the ways in which a planner may explore from this starting condition. In some sense, what we have just defined is just the traditional search problem in a graph.
 
-% Why stochastic?
-\subsection{Stochasticity}
+% More complicated than search
+The problem of interest is quite a bit more complicated than search. Probabilistic planning algorithms are designed to solve problems in domains where edge-traversal is not guaranteed to be deterministic. That is, when our algorithm traverses from vertex $v$ to vertex $w$ along edge $\langle v,w \rangle$, for $v, w \in V(G)$, there is no guarantee that the algorithm will land in vertex $w$. This inherent modeling capability accounts for a variety of complex domains whose intrinsic dynamics are non-deterministic, or in cases where our representation of a problem is abstracted to the point where the dynamics must be modeled as stochastic. For instance, in the inverted pendulum problem, whose internal state space is modeled as the real-numbered angle of the pendulum, may be represented by discretizing across angle-space. This discretization forces the dynamics to be stochastic.
 
-% What about normal planning?
-\subsection{Planning}
+% Goal is to deploy in real world
+Ultimately, our goal is to deploy these planners into the systems that work in the actual world, and not just in simulations {\it a la} a Grid World. As a result, this investigation is focused on probabilistic planning algorithms. Henceforth, a ``planner" will implicitly specify a probabilistic planner, unless noted otherwise.
+
+% MDP!
+Probabilistic planning problems may be formulated as a stochastic sequential decision making problem, modeled as a Markov Decision Process (MDP). In these problems, an agent must find a mapping from states to actions for some subset of the state space that enables the agent to maximize reward over the course of the agent's existence. Of particular interest are Goal-Direction MDPs, whose execution terminates when the agent reaches a terminal or goal state. We treat the problem of an agent operating in an MDP as equivalent to the probabilistic planning problem.
+
+% P-Complete, curse of dimensionality
+Computing optimal solutions to MDPs is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time. Sadly, the state-action spaces of many problem spaces of interest grow exponentially with respect to the number of configurations of the environment.  For instance, when a robot is manipulating objects, an object can be placed anywhere in a large set of locations.  The size of the state space explodes exponentially with the number of objects and locations, which bounds the placement problems that the robot is able to expediently solve. Bellman called this problem the ``curse of dimensionality"~\cite{bellman1961adaptive}.
+
+% Overview of some related work.
+To confront the state-action space explosion that accompanies complex tasks, prior work has explored adding knowledge to the planner, such as options~\cite{sutton99} and macro-actions~\cite{Botea:2005kx,Newton:2005vn}.  However, while these methods allow the agent to search more deeply in the state space, they add non-primitive actions to the planner which {\em increase} the branching factor of the state-action space.  The resulting augmented space is even larger, which can have the paradoxical effect of increasing the search time for a good policy~\cite{Jong:2008zr}. Deterministic forward-search algorithms like hierarchical task networks (HTNs)~\cite{Nau:1999:SSH:1624312.1624357}, and temporal logical planning (TLPlan)~\cite{Bacchus95usingtemporal,Bacchus99usingtemporal}, add knowledge to the planner that greatly increases planning speed, but do not generalize to stochastic domains. Additionally, the knowledge provided to the planner by these methods is quite extensive, reducing the agent's autonomy.
+
+% Learning to plan.
+In this work, we propose a general strategy of {\it learning to plan}, in which a planning algorithm is given access to optimal solutions to simple tasks, and then asked to solve complex tasks from the same domain. The key insight is that the planner may transfer knowledge about optimal behavior from the simple tasks to the more difficult tasks. To support this strategy, we introduce the Object-Oriented Parameterized Markov Decision Process, which is critical to the terminology that underlies this work.
+
+% GBAPs
+In particular, we develop {\it goal-based action priors}, that maintain a probability distribution on the optimality of each action. During training, the planner gets query access to the optimal behavior in a series of training tasks which informs these priors. During testing, the planner uses the priors to dramatically reduce state-action space exploration, while still finding a near optimal policy. We evaluate our approach in the 3D blocks world Minecraft in several difficult challenges, including constructing a bridge over a trench, and digging underground to find a gold block.
 
 
-% Complexity issue!
+%\subsection{Knowledge}
+%One historically successful strategy was to provide planning algorithms with a set of task-specific knowledge - in the case of Chess, one could imagine constructing a heuristic indicating the approximate utility of arbitrary game states. Such a heuristic will, (1) require a lot of careful thought and energy to create, and (2) will not be useful to a planner in the context of Checkers, Tic-Tac-Toe, or any other related game. In general, this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer over to different tasks. As a result, each new task requires a new body of knowledge. 
+%
+%Alternatively, we investigate the setting of {\it learning to plan}, in which useful planners acquire useful domain knowledge about how to solve extremely complex problems from a small training set of planning problems. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by taking advantage of prior knowledge of optimal behavior in similar tasks. In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planing algorithms according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and are then used to solve for optimal behavior in state spaces that are far more complex. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that the framework of {\it learning to plan} is a compelling method of tackling previously unsolvable planning problems.
+%
 
-\subsection{Knowledge}
-One historically successful strategy was to provide planning algorithms with a set of task-specific knowledge - in the case of Chess, one could imagine constructing a heuristic indicating the approximate utility of arbitrary game states. Such a heuristic will, (1) require a lot of careful thought and energy to create, and (2) will not be useful to a planner in the context of Checkers, Tic-Tac-Toe, or any other related game. In general, this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer over to different tasks. As a result, each new task requires a new body of knowledge. 
 
-Alternatively, we investigate the setting of {\it learning to plan}, in which useful planners acquire useful domain knowledge about how to solve extremely complex problems from a small training set of planning problems. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by taking advantage of prior knowledge of optimal behavior in similar tasks. In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planing algorithms according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and are then used to solve for optimal behavior in state spaces that are far more complex. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that the framework of {\it learning to plan} is a compelling method of tackling previously unsolvable planning problems.
 
-The outline of this document is as follows. In the remainder of Section 1, we introduce the basic framework for learning to plan, and summarize the domains of interest. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:oop_mdps}, we introduce a new model, the Object Oriented Parameterized Markov Decision Process, that extends the MDP for use in the {\it learning to plan} framework. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce the Goal-Based Action Prior, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
-
-\subsection{Learning to Plan}
-An alternative approach is to {\it learn to plan}. In this sense, training  will slowly build up a set of skills, behaviors, and knowledge that dramatically simplify more complicated problems.
-The tractability of planning problems depends critically on problem difficulty, though with the proper prior knowledge, challenging problems may be decomposed into tasks for which optimal behavior is known.
-
-% General structure (OOP-MDP, problem generator, two separate distributions, intermediary agent space)
-
+%\subsection{Learning to Plan}
+%An alternative approach is to {\it learn to plan}. In this sense, training  will slowly build up a set of skills, behaviors, and knowledge that dramatically simplify more complicated problems.
+%The tractability of planning problems depends critically on problem difficulty, though with the proper prior knowledge, challenging problems may be simplified using prior knowledge of the task.
 
 % What domains are we interested in?
 \subsection{Domains}
-Domains of special interest are robotic navigation tasks that involve manipulation of the environment, such as pressing buttons, opening doors, and moving obstacles, as well as tackling more general problem solving strategies that include planning with 3D printers and programmable matter; suppose a robot could open a locked door by scanning the lock and printing the proper key. A composite robot-3D printer system would dramatically increase the scope of what robots can achieve. Robots could construct entire buildings on other planets, such as structures that offer protection from the harsh environments of foreign-atmospheres. The European Space Agency is already investigating using 3D printers to construct protective domes on the moon~\cite{ceccanti20103D,Cesaretti2014430} -- however, a 3D printer alone is stationary. The physical capabilities of a robot combined with the tool generation of a 3D printer offer many compelling advances in space exploration. If a part breaks on Mars, we need not send another entire mission to Mars, our robot can simply print another one. However, the space of printable objects is so massive that searching through possible futures is computationally intractable, calling for an advanced planning system that can reason over huge spaces.
+Domains of special interest are robotic navigation tasks that involve manipulation of the environment, such as pressing buttons, opening doors, and moving obstacles, as well as tackling more general problem solving strategies that include planning with 3D printers and programmable matter; a composite robot-3D printer system would dramatically increase the scope of what robots can achieve. Robots could construct entire buildings on other planets, such as structures that offer protection from the harsh environments of foreign-atmospheres. The European Space Agency is already investigating using 3D printers to construct protective domes on the moon~\cite{ceccanti20103D,Cesaretti2014430} -- however, a 3D printer alone is stationary. The physical capabilities of a robot combined with the tool generation of a 3D printer offer many compelling advances in space exploration. If a part breaks on Mars, we need not send another entire mission to Mars, our robot can simply print another one for use in construction tasks. However, the space of printable objects is so massive that searching through possible futures is computationally intractable, calling for an advanced planning system that can reason over huge spaces. In particular, we are interested in domains in which a decision making agent has a lot of power to manipulate the environment. This often translates to a large action space, but may also occur in environments that contain many objects, resulting in a exponential number of possible configurations of the objects involved.
 
-In particular, we are interested in domains in which a decision making agent has a lot of power to manipulate the environment.
+% Minecraft
+In this document, we consider two domains. The first is the 3D blocks world, Minecraft. Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types.
+Minecraft's physics and action space are extremely expressive and allow users to create complex objects and systems, including logic gates and functional scientific graphing calculators.
+Minecraft serves as a model for complicated real world systems such as robots
+traversing complex terrain, and large scale construction projects involving highly malleable environments.  As in these tasks, the agent operates in a
+very large state-action space in an uncertain environment. Figure~\ref{fig:minecraft} shows three example scenes from Minecraft problems that we solve.
 
+% Robo-cooking.
+
+% Outline.
+The outline of this document is as follows. In the remainder of Section 1, we summarize the basic framework for learning to plan. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:learning_to_plan}, we introduce a new model, the Object-Oriented Parameterized Markov Decision Process, that supports much of the terminology introduced in this document. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce Goal-Based Action Priors, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
 
 
 % --- Background ---
@@ -109,16 +139,13 @@ Conditions can be formulated arbitrarily, so if we had a perfect planning algori
 
 In other words, planning has two pretty great properties: 1) it can represent just about any problem (at any level of abstraction), 2) advances in planning can then benefit a lot of stuff!
 
-\subsection{Planning}
 
-Planning is search! Older variants...
-
-General Problem solver!
 
 \subsection{Stochastic Planning}
 
 Planning for optimal behavior in the real world must account for the uncertainty inherent in our experience of reality. As a result, robotics planning problems are often modeled as a stochastic sequential decision making problem, formalized as a Markov Decision Process.
 
+% MDPs
 \subsection{Markov Decision Process}
 {\definition A \textup{Markov Decision Process (MDP)} is a five-tuple: $\langle \mathcal{S},
 \mathcal{A}, \mathcal{T}, \mathcal{R}, \gamma \rangle$, where:
@@ -139,7 +166,7 @@ A specific instance of an MDP defines a probabilistic planning problem. The solu
 
 {\definition A \textup{Policy}, denoted `$\pi$', is a mapping from a state $s \in \mathcal{S}$ to an action $a \in \mathcal{A}$.}
 
-We now introduce a {\it value function}: \\
+Solutions to MDPs are policies. That is, a planning algorithm that solves a particular MDP instance returns a policy $\pi$. We can evaluate a policy according to its associated value function: \\
 
 {\definition A \textup{Value Function} $V^\pi(s)$ is the expected cumulative reward in state $s$ when following policy $\pi$.}
 
@@ -161,8 +188,6 @@ Q^\pi(s,a) = \left.\E{R(s,\pi(a))\ \right|\ s_t = s, a_t = a} = \left.\E{\sum_{k
 
 {\lemma There exists an optimal policy $\pi'$ for all finite Markov Decision Processes.}
 
-
-
 \subsection{Solving Markov Decision Processes}
 
 There are a variety of methods for solving MDPs.
@@ -172,7 +197,6 @@ There are a variety of methods for solving MDPs.
 {\theorem Optimal solutions for an MDP are $\mathcal{O}()$}
 
 \subsubsection{Linear Programming}
-
 
 \subsubsection{Value Iteration}
 
@@ -194,7 +218,7 @@ Algorithm Overview.
 
 
 An Object-Oriented Markov Decision Process (OO-MDP)~\cite{diuk08} efficiently represents the state
-of an MDP through the use of objects and predicates. These predicates enable abstraction into an intermediary representation space that enables translation between OO-MDP instances, which is critical for transferring planning knowledge. \\
+of an MDP through the use of objects and predicates. \\
 
 {\definition An \textup{Object-Oriented Markov Decision Process (OO-MDP)} is an eight tuple, $\langle \mathcal{C}, \textsc{Att}(c), \textsc{Dom}(a), \mathcal{O},
 \mathcal{A}, \mathcal{T}, \mathcal{R}, \gamma \rangle$, where:
@@ -219,32 +243,64 @@ applying action $a$ in state $s$ and transitioning to state $s'$
 An OO-MDP state is a collection of objects, $O = \{o_1, \ldots, o_o \}$.  Each object
 $o_i$ belongs to a class, $c_j \in \{c_1, \ldots, c_c\}$. Every class
 has a set of attributes, $Att(c) = \{c.a_1, \ldots, c.a_a \}$, each of
-which has a domain, $Dom(c.a)$, of possible values. OO-MDPs enable
-planners to use predicates over classes of objects. That is, the
-OO-MDP definition also includes a set of predicates $\mathcal{P}$ that
+which has a domain, $Dom(c.a)$, of possible values. 
+
+% Predicates
+OO-MDPs enable planners to use predicates over classes of objects. That is, the
+OO-MDP definition also allows us to create a set of predicates $\mathcal{P}$ that
 operate on the state of objects to provide additional high-level
 information about the MDP state.
 
-Agent space stuff:
-OO-MDP predicates provide state space independence. For a given planning domain, OO-MDP objects
-often appear across tasks. Since predicates operate on collections
-of objects, they generalize beyond specific state spaces within the domain.
+% Agent space stuff
+OO-MDP predicates provide state space independence. As we will see, OO-MDP objects
+often appear across tasks from the same domain. Since predicates operate on collections
+of objects, they generalize beyond specific tasks within the domain.
 For instance, in Minecraft, a predicate checking the contents of the agent's inventory
 generalizes beyond any particular Minecraft task. We capitalize on this state space
-independence by using OO-MDP predicates as features for action pruning.
+independence by using OO-MDP predicates to create an intermediary representation relative to the agent: \\
+
+{\definition Let \textup{Agent Space} refer to a collection of predicates $\mathcal{P}_{agent}$ that relate the $agent$ object to other objects in the task}.
+
+%\subsection{Hidden Parameter Markov Decision Process}
+%
+%George's Paper! Neat framework for transfer learning.\cite{konidaris2014hidden}
+%
 
 
-\subsection{Hidden Parameter Markov Decision Process}
-
-George's Paper! Neat framework for transfer learning.\cite{konidaris2014hidden}
-
-
-
-
+% - Transfer Learning -
 \subsection{Transfer Learning}
 
 \subsubsection{Agent Space}
-\subsubsection{Options}
+
+\subsubsection{Temporally Extended Actions}
+
+%SMDP?
+
+Temporally extended actions are actions that the agent can select like
+any other action of the domain, except executing them results in
+multiple primitive actions being executed in succession. Two common
+forms of temporally extended actions are {\em
+  macro-actions}~\cite{hauskrecht98} ~and {\em
+  options}~\cite{sutton99}.  
+  
+  Macro-actions are actions that always
+execute the same sequence of primitive actions. Options are defined
+with high-level policies that accomplish specific sub tasks. For
+instance, when an agent is near a door, the agent can engage the
+`door-opening-option-policy', which switches from the standard
+high-level planner to running a policy that is crafted to open doors.
+Although the classic options framework is not generalizable to
+different state spaces, creating {\em portable} options is a topic of
+active
+research~\cite{konidaris07,konidaris2009efficient,Ravindran03analgebraic,andre2002state,konidaris2012transfer}.
+
+Since temporally extended actions may negatively impact planning
+time~\cite{Jong:2008zr} by adding to the number of actions the agent
+can choose from in a given state, combining our priors with
+temporally extended actions allows for even further speedups in
+planning, as demonstrated in Table~\ref{table:temp_ext_act_results}. In
+other words, goal-based action priors are complementary knowledge to options and
+macro-actions.
 
 
 \subsubsection{Macroactions}
@@ -255,8 +311,7 @@ George's Paper! Neat framework for transfer learning.\cite{konidaris2014hidden}
 \section{Learning To Plan}
 \label{sec:learn_to_plan}
 
-As discussed, the framework of {\it learning to plan} offers a compelling means of tackling extremely complex stochastic planning problems by first solving simple related problems. Here, we introduce the Object-Oriented Paramterized Markov Decision Process that enables us to cleanly define the notions of {\it domain}, {\it task}, and {\it task generators}, which are critical for advancing the methods that learn to plan.
-
+We now introduce the definitions at the core of {\it learning to plan}. Again, the motivation is to tackle extremely complex stochastic planning problems by first solving simple related problems. We now establish the models and definitions necessary to precisely show what is meant by related tasks. In particular, we defines the Object-Oriented Paramterized Markov Decision Process that enables us to cleanly define the notions of {\it domain}, {\it task}, and {\it task generators}, which are critical for advancing methods that learn to plan.
 
 \subsection{OOP-MDPs}
 In particular, we are interested in families of related MDPs. To cleanly denote the relationship between the training tasks and test tasks, we introduce a new model, the Object-Oriented Parameterized MDP, which naturally models families of related MDPs while maintaining the representational richness of the OO-MDP. \\
@@ -282,7 +337,6 @@ In particular, the following elements are left undefined at the OOP-MDP level:
 Next, we provide definitions for a number of notions central to the learning to plan framework.
 
 \subsection{Definitions}
-
 
 {\definition A \textup{Domain} is an OOP-MDP instance where $\theta$ is unspecified. That is, the set of possible attribute values that objects in the domain may take on, defined by $\theta$, is undefined. Note that the set of object instances, $\gamma$, $\textsc{Dom}(a)$, and the reward function are all undefined, too.}
 
@@ -338,19 +392,18 @@ Specifically, all agent-driven planning domains modeled as an OOP-MDP will have 
 \label{sec:gbaps}
 
 To address state-action space explosions in robotic planning tasks,
-we augment an Object Oriented Markov Decision Process (OO-MDP) with a
+we augment an OO-MDP instance with a
 specific type of action prior conditioned on the current state and an abstract goal description. This {\it goal-based action prior}
 enables an agent to prune irrelevant actions on a
 state-by-state basis according to the agent's current goal, focusing the agent on
 the most promising parts of the state space.  
  
 Goal-based action priors can be specified
-by hand or learned through experience in related
-problems, making them a concise, transferable, and learnable means of
+by hand or learned by repeated queries to a Task Generator for a given domain $D$, making them a concise, transferable, and learnable means of
 representing useful planning knowledge. Our results demonstrate
 that these priors provide dramatic improvements for a variety of
 planning tasks compared to baselines in simulation, and are applicable
-across different state spaces.  Moreover, while manually provided
+across different tasks.  Moreover, while manually provided
 priors outperform baselines on difficult problems, our approach
 is able to learn goal-based action priors from experience on simple, tractable, 
 training problems that yield even greater performance on the difficult problems
@@ -360,7 +413,7 @@ We conduct experiments in
 the game Minecraft, which has a very large state-action space, and on
 a real-world robotic cooking assistant.  Figure~\ref{fig:example}
 shows an example of two problems from the same domain in the game
-Minecraft; the agent learns on simple randomly generated problems
+Minecraft; the agent learns on simple tasks produced by a Task Generator,
 (like the problem in the left image) and tests
 on new harder problems from the same domain that it has never previously
 encountered (like the problem in the right image). All associated code with this paper may be found at
@@ -672,6 +725,7 @@ reducing the CPU time taken for EP-RTDP and LP-RTDP.
 
 % -- Table: Minecraft Naive Bayes results --
 \begin{table}
+\centering
 \ra{1.15}
 \small
 \begin{tabular}{@{}llll@{}}\toprule
