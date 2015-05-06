@@ -48,13 +48,13 @@
 % --- Abstract ---
 \begin{abstract}
 % Planning is legit but it's hard.
-Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state}, to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior}, to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. However, computing optimal solutions to these problems is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time.
+Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, including conservation biology~\cite{possingham1997state}, self-driving cars~\cite{thrun2006stanley,montemerlo2008junior}, and space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. However, computing optimal solutions to these problems is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time.
 
 % We can scale by providing knowledge, but then you have to hand engineer knowledge
-One way of scaling planning algorithms to larger, more complex problems is to provide planners knowledge about the task of interest; this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer between slight variants of the same task. As a result, each new problem instance requires a newly engineered body of knowledge.
+One way of enabling probabilistic planning algorithms to efficiently solve more complex problems is to provide knowledge about the task of interest; this knowledge might be in the form of an abstracted representation that reduces the dimensionality of the problem, or a heuristic that biases exploration toward the optimal solution. Unfortunately, these forms of knowledge are highly specific to the particular problem instance, and often require significant reworking in order to transfer between slight variants of the same task. As a result, each new problem instance requires a newly engineered body of knowledge.
 
 % By learning to plan, we can solve families of related problems.
-Alternatively, we propose {\it learning to plan}, in which planners acquire useful domain knowledge about how to solve families of related problems from a small training set of tasks, eliminating the need for hand engineering knowledge. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by learning about the structure of optimal behavior in the training tasks. We introduce the Object-Oriented Parameterized Markov Decision Process, which provides the backbone for this investigation.
+Alternatively, we propose {\it learning to plan}, in which planners acquire useful domain knowledge about how to solve families of related problems from a small training set of tasks, eliminating the need for hand engineering knowledge. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by learning about the structure of optimal behavior in the training tasks.
 
 % Specific approach. (gbaps)
 In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planners according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and whose solutions inform the planner about optimal behavior in much more complex tasks from the same domain. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that {\it learning to plan} is a compelling means of scaling planning algorithms to solve families of complex tasks without the need for hand engineered knowledge.
@@ -65,7 +65,6 @@ In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, 
 % --- Acknowledgements ---
 \section*{Acknowledgements}
 This work would not have been possible without the guidance of my Advisor Professor Stefanie Tellex, whose support was essential for carrying out this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their critical contributions to this project, and for the many wonderful discussions that led to the central ideas introduced in this document. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including Professor Michael Littman, David Whitney, Jeremy Joachim, Izaak Baker, Ryan Izant, Greg Yauney, Dilip Arumagum, Miles Eldon, Stephen Brawner, Nakul Goppalan, Kevin O'Farrell, Emily Wu, and John Oberlin.
-
 % --- Table Of Contents ---
 \newpage
 \tableofcontents
@@ -76,16 +75,16 @@ This work would not have been possible without the guidance of my Advisor Profes
 \label{sec:introduction}
 
 % Why is planning so baller?
-Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. It is not altogether surprising that planners have contributed to such disparate fields - under the right lens, the framework of planning is simply a versatile approach to abstract problem solving. Any problem for which a notion of a goal may be expressed, in some sense, can be represented as a planning problem. The representational richness inherent in First Order Logic offers a succinct characterization of goals; given some representation of the problem space, are some first order predicates true for a particular configuration of the environment? All that remains is to specify the starting conditions, and the ways in which a planner may explore from this starting condition. In some sense, what we have just defined is just the traditional search problem in a graph.
+Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. It is not altogether surprising that planners have contributed to such disparate fields - the framework of planning is an extremely versatile approach to generic problem solving. Any problem for which a notion of a goal may be expressed, in some sense, can be represented as a planning problem. The representational richness inherent in First Order Logic offers a succinct characterization of goals; given some representation of the problem space, are some first order predicates true for a particular configuration of the environment? All that remains is to specify the starting conditions, and the ways in which a planner may explore from this starting condition. In some sense, what we have just defined is just the traditional search problem in a graph.
 
 % More complicated than search
 The problem of interest is quite a bit more complicated than search. Probabilistic planning algorithms are designed to solve problems in domains where edge-traversal is not guaranteed to be deterministic. That is, when our algorithm traverses from vertex $v$ to vertex $w$ along edge $\langle v,w \rangle$, for $v, w \in V(G)$, there is no guarantee that the algorithm will land in vertex $w$. This inherent modeling capability accounts for a variety of complex domains whose intrinsic dynamics are non-deterministic, or in cases where our representation of a problem is abstracted to the point where the dynamics must be modeled as stochastic. For instance, in the inverted pendulum problem, whose internal state space is modeled as the real-numbered angle of the pendulum, may be represented by discretizing across angle-space. This discretization forces the dynamics to be stochastic.
 
-% Goal is to deploy in real world
 Ultimately, our goal is to deploy these planners into the systems that work in the actual world, and not just in simulations {\it a la} a Grid World. As a result, this investigation is focused on probabilistic planning algorithms. Henceforth, a ``planner" will implicitly specify a probabilistic planner, unless noted otherwise.
 
+\subsection{Planning as Sequential Decision Making}
 % MDP!
-Probabilistic planning problems may be formulated as a stochastic sequential decision making problem, modeled as a Markov Decision Process (MDP). In these problems, an agent must find a mapping from states to actions for some subset of the state space that enables the agent to maximize reward over the course of the agent's existence. Of particular interest are Goal-Direction MDPs, whose execution terminates when the agent reaches a terminal or goal state. We treat the problem of an agent operating in an MDP as equivalent to the probabilistic planning problem.
+Probabilistic planning problems may be formulated as a stochastic sequential decision making problem, modeled as a Markov Decision Process (MDP). In these problems, an agent must find a mapping from states to actions for some subset of the state space that enables the agent to maximize reward over the course of the agent's existence. Of particular interest are Goal-Directed MDPs, whose execution terminates when the agent reaches a terminal or goal state. We treat the problem of an agent operating in an MDP as equivalent to the probabilistic planning problem.
 
 % P-Complete, curse of dimensionality
 Computing optimal solutions to MDPs is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time. Sadly, the state-action spaces of many problem spaces of interest grow exponentially with respect to the number of configurations of the environment.  For instance, when a robot is manipulating objects, an object can be placed anywhere in a large set of locations.  The size of the state space explodes exponentially with the number of objects and locations, which bounds the placement problems that the robot is able to expediently solve. Bellman called this problem the ``curse of dimensionality"~\cite{bellman1961adaptive}.
@@ -106,13 +105,11 @@ In particular, we develop {\it goal-based action priors}, that maintain a probab
 %Alternatively, we investigate the setting of {\it learning to plan}, in which useful planners acquire useful domain knowledge about how to solve extremely complex problems from a small training set of planning problems. The critical insight is that problems that are too complex to solve efficiently often resemble much simpler problems for which optimal solutions may be computed. By extracting relevant characteristics of the simple problems' solutions, we develop algorithms to solve the more complex problems by taking advantage of prior knowledge of optimal behavior in similar tasks. In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, that guide planing algorithms according to which actions are likely to be useful under different conditions. The priors are informed during a training stage in which simple, tractable tasks are solved, and are then used to solve for optimal behavior in state spaces that are far more complex. We demonstrate that goal-based action priors dramatically reduce the time taken to find a near-optimal plan compared to baselines, and suggest that the framework of {\it learning to plan} is a compelling method of tackling previously unsolvable planning problems.
 %
 
-
-
 %\subsection{Learning to Plan}
 %An alternative approach is to {\it learn to plan}. In this sense, training  will slowly build up a set of skills, behaviors, and knowledge that dramatically simplify more complicated problems.
 %The tractability of planning problems depends critically on problem difficulty, though with the proper prior knowledge, challenging problems may be simplified using prior knowledge of the task.
 
-% What domains are we interested in?
+% What domains are we interested in? 
 \subsection{Domains}
 Domains of special interest are robotic navigation tasks that involve manipulation of the environment, such as pressing buttons, opening doors, and moving obstacles, as well as tackling more general problem solving strategies that include planning with 3D printers and programmable matter; a composite robot-3D printer system would dramatically increase the scope of what robots can achieve. Robots could construct entire buildings on other planets, such as structures that offer protection from the harsh environments of foreign-atmospheres. The European Space Agency is already investigating using 3D printers to construct protective domes on the moon~\cite{ceccanti20103D,Cesaretti2014430} -- however, a 3D printer alone is stationary. The physical capabilities of a robot combined with the tool generation of a 3D printer offer many compelling advances in space exploration. If a part breaks on Mars, we need not send another entire mission to Mars, our robot can simply print another one for use in construction tasks. However, the space of printable objects is so massive that searching through possible futures is computationally intractable, calling for an advanced planning system that can reason over huge spaces. In particular, we are interested in domains in which a decision making agent has a lot of power to manipulate the environment. This often translates to a large action space, but may also occur in environments that contain many objects, resulting in a exponential number of possible configurations of the objects involved.
 
@@ -154,8 +151,8 @@ Planning for optimal behavior in the real world must account for the uncertainty
 \item $\mathcal{T}$ denotes $\mathcal{T}(s' \mid s,a)$, the
 transition probability of an agent applying action $a \in \mathcal{A}$
 in state $s \in \mathcal{S}$ and arriving in $s' \in \mathcal{S}$
-\item $\mathcal{R} : \mathcal{S} \times \mathcal{A} \times \mathcal{S} \mapsto \mathbb{R}$ denotes the real valued reward received by the agent for
-applying action $a$ in state $s$ and transitioning to state $s'$
+\item $\mathcal{R} : \mathcal{S}\mapsto \mathbb{R}$ denotes the real valued reward received by the agent for
+applying by occupying state $s$.
 \item $\gamma \in [0, 1)$ is a discount factor that defines how much the
   agent prefers immediate rewards over future rewards (the agent
   prefers to maximize immediate rewards as $\gamma$ decreases).
@@ -175,11 +172,11 @@ For the above definition of an MDP, the Value Function associated with following
 V^\pi(s) = \left.\E{R(s,\pi(a))\ \right|\ s_t = s} = \left.\E{\sum_{k=0}^\infty \gamma^k r_{t+k+1}\ \right|\ s_t = s}
 \end{equation}
 
-Furthermore, we introduce a {\it Q-function}: \\
+We also introduce a {\it Q-function}, which is relative to a state-action pair: \\
 
 {\definition A \textup{Q-Function}, $Q^\pi(s,a)$, is the value of taking action $a$ in state $s$ and following policy $\pi$ thereafter}.
 
-Again, for the above definition of an MDP, the Q-Function associated with following policy $\pi$, state $s$ and action $a$ is:
+Again, for the above definition of an MDP, the Q-Function associated with following policy $\pi$, starting in state $s$ and applying action $a$ is:
 
 \begin{equation}
 Q^\pi(s,a) = \left.\E{R(s,\pi(a))\ \right|\ s_t = s, a_t = a} = \left.\E{\sum_{k=0}^\infty \gamma^k r_{t+k+1}\ \right|\ s_t = s, a_t = a}
@@ -189,19 +186,13 @@ Q^\pi(s,a) = \left.\E{R(s,\pi(a))\ \right|\ s_t = s, a_t = a} = \left.\E{\sum_{k
 
 \subsection{Solving Markov Decision Processes}
 
-There are a variety of methods for solving MDPs.
+There are a variety of methods for solving MDPs. Here we introduce two methods used 
 
 \subsubsection{Complexity}
 
 {\theorem Optimal solutions for an MDP are $\mathcal{O}()$}
 
-\subsubsection{Linear Programming}
-
 \subsubsection{Value Iteration}
-
-Algorithm Overview.
-
-\subsubsection{Policy Iteration}
 
 Algorithm Overview.
 
@@ -212,9 +203,8 @@ Algorithm Overview.
 \subsubsection{Bounded Real Time Dynamic Programming}
 
 
-
-\subsection{Object Oriented Markov Decision Process}
-
+% - Subsection: OO-MDPs -
+\subsection{Object-Oriented Markov Decision Process}
 
 An Object-Oriented Markov Decision Process (OO-MDP)~\cite{diuk08} efficiently represents the state
 of an MDP through the use of objects and predicates. \\
@@ -232,8 +222,8 @@ of an MDP through the use of objects and predicates. \\
 \item $\mathcal{T}$ denotes $\mathcal{T}(s' \mid s,a)$, the
 transition probability of an agent applying action $a \in \mathcal{A}$
 in state $s \in \mathcal{S}$ and arriving in $s' \in \mathcal{S}$
-\item $\mathcal{R} : \mathcal{S} \times \mathcal{A} \times \mathcal{S} \mapsto \mathbb{R}$ denotes the real valued reward received by the agent for
-applying action $a$ in state $s$ and transitioning to state $s'$
+\item $\mathcal{R} : \mathcal{S} \mapsto \mathbb{R}$ denotes the real valued reward received by the agent for
+occupying state $s$.
 \item $\gamma \in [0, 1)$ is a discount factor that defines how much the
   agent prefers immediate rewards over future rewards (the agent
   prefers to maximize immediate rewards as $\gamma$ decreases).
@@ -247,70 +237,24 @@ which has a domain, $Dom(c.a)$, of possible values.
 % Predicates
 OO-MDPs enable planners to use predicates over classes of objects. That is, the
 OO-MDP definition also allows us to create a set of predicates $\mathcal{P}$ that
-operate on the state of objects to provide additional high-level
+operate on the state of objects to provide high-level
 information about the MDP state.
 
 % Agent space stuff
-OO-MDP predicates provide state space independence. As we will see, OO-MDP objects
+The representative power of OO-MDP predicates generalize across specific tasks. As we will see, OO-MDP objects
 often appear across tasks from the same domain. Since predicates operate on collections
 of objects, they generalize beyond specific tasks within the domain.
 For instance, in Minecraft, a predicate checking the contents of the agent's inventory
-generalizes beyond any particular Minecraft task. We capitalize on this state space
-independence by using OO-MDP predicates to create an intermediary representation relative to the agent: \\
-
-{\definition Let \textup{Agent Space} refer to a collection of predicates $\mathcal{P}_{agent}$ that relate the $agent$ object to other objects in the task}.
-
-
-Since all of our decision making problems are at their core, planning problems, we will be interested in goal-directed MDPs. Specifically, the reward function associated with each problem will be a {\it goal-direction reward function}: \\
-
-{\definition A \textup{Goal-Based Reward Function} is a reward function defined by a characteristic predicate. That is, the output of the reward function is one of two values, $r_{goal}$, or $r_{\emptyset}$. We say that the predicate $p$ defines the reward function $\mathcal{R}$ relative to $r_{goal}$ and $r_\emptyset$ when:
-
-\begin{equation}
-\mathcal{R}_p(s) = \begin{cases}
-r_{goal}& p(s) \\
-r_{\emptyset}&\neg p(s)
-\end{cases}
-\end{equation}}
-
+generalizes beyond any particular Minecraft task. 
 % - Transfer Learning -
-\subsection{Transfer Learning}
+%\subsection{Transfer Learning}
+%
+%Neat idea: Random policy (samples uniformly for each action in each state). The expected cumulative reward for Rando Policy is RandValFunc or something.
+%
+%Q: What is the difference between RandValFunc and Optimal?
+%
+%This gets at the notion of problem difficulty?
 
-Neat idea: Random policy (samples uniformly for each action in each state). The expected cumulative reward for Rando Policy is RandValFunc or something.
-
-Q: What is the difference between RandValFunc and Optimal?
-
-This gets at the notion of problem difficulty?
-
-
-\subsubsection{Temporally Extended Actions}
-
-%SMDP?
-
-Temporally extended actions are actions that the agent can select like
-any other action of the domain, except executing them results in
-multiple primitive actions being executed in succession. Two common
-forms of temporally extended actions are {\em
-  macro-actions}~\cite{hauskrecht98} ~and {\em
-  options}~\cite{sutton99}.  
-  
-  Macro-actions are actions that always
-execute the same sequence of primitive actions. Options are defined
-with high-level policies that accomplish specific sub tasks. For
-instance, when an agent is near a door, the agent can engage the
-`door-opening-option-policy', which switches from the standard
-high-level planner to running a policy that is crafted to open doors.
-Although the classic options framework is not generalizable to
-different state spaces, creating {\em portable} options is a topic of
-active
-research~\cite{konidaris07,konidaris2009efficient,Ravindran03analgebraic,andre2002state,konidaris2012transfer}.
-
-%Since temporally extended actions may negatively impact planning
-%time~\cite{Jong:2008zr} by adding to the number of actions the agent
-%can choose from in a given state, combining our priors with
-%temporally extended actions allows for even further speedups in
-%planning, as demonstrated in Table~\ref{table:temp_ext_act_results}. In
-%other words, goal-based action priors are complementary knowledge to options and
-%macro-actions.
 
 
 
@@ -319,10 +263,68 @@ research~\cite{konidaris07,konidaris2009efficient,Ravindran03analgebraic,andre20
 \label{sec:learning_to_plan}
 
 We now introduce the definitions at the core of the framework for how an agent can learn to plan. \\
+
+\subsection{Definitions}
 % Domain definition.-
 {\definition A \textup{Domain}, denoted $D$, is a five tuple, $\langle \mathcal{C}, \textsc{Att}(c), \mathcal{A}, \mathcal{T}, \textsc{Dom}(a) \rangle$, where each element is defined as in the OO-MDP definition.} 
 
 % Discussion of domain, why this captures what we want it to capture, example w/ Grid world.
+
+We introduce an intermediary representation relative to the agent, termed {\it Agent Space}, first introduced by~\cite{konidaris2006framework}.\\
+
+{\definition Let \textup{Agent Space} refer to a collection of predicates $\mathcal{P}_{agent}$ that relate the $agent$ object to other objects in the task}.
+
+Since all of our decision making problems are at their core, planning problems, we will be interested in MDPs where an agent is trying to satisfy a specific goal. Specifically, the reward function associated with each problem will be a {\it goal-directed reward function}: \\
+
+{\definition A \textup{Goal-Based Reward Function} is a reward function defined by a characteristic predicate. That is, the output of the reward function is one of two values, $r_{goal}$, or $r_\varnothing$. We say that the predicate $p$ defines the reward function $\mathcal{R}$ relative to $r_{goal}$ and $r_\varnothing$ when:
+
+\begin{equation}
+\mathcal{R}_p(s) = \begin{cases}
+r_{goal}& p(s) \\
+r_\varnothing&\neg p(s)
+\end{cases}
+\end{equation}}
+
+Now we define a {\it task}, indicating a specific problem instance an agent is supposed to solve: \\
+
+% Task definition
+{\definition A \textup{Task} is a fully specified OO-MDP. A task $\tau$ belongs to the domain $D$ just in case $\tau.\mathcal{C} = D.\mathcal{C}, \tau.\mathcal{T} = D.\mathcal{T}, \tau.\textsc{Att}(c) = D.\textsc{Att}(c), \tau.\mathcal{A} = D.\mathcal{A}$}.
+
+
+
+% - Subsection: Task Generator -
+\subsection{Task Generators}
+Next, we introduce the {\it Task Generator}, which is central to the consideration of transferring knowledge among related problems.
+
+% Task Generator definition
+{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D$ and a set of constraints $\phi$, and outputs a task, $\tau \in D$, such that the constraints specified by $\phi$ are true of $\tau$.}
+
+In short, we can define a domain $D$, and generate random tasks from that domain. Critically, task generators are {\it randomized} - this ensures that repeated queries to a task generator with the same domain and constraints produce different tasks.
+
+The constraints, $\phi$, consists of two sets:
+
+\begin{itemize}
+\item $\phi_{A}$ is a set of constraints on attribute ranges. Namely, $\phi_{A} = \{ (a_1, x_1, y_1), \ldots, (a_k, x_k, y_k) \}$, where each triple denotes the range of possible values that attributes $a_1, \ldots, a_k$ may take on.
+\item $\phi_{P}$ is a set of logical constraints. Namely, $\phi_P = \{p_1, \ldots p_n\}$, where $p_i$ is a predicate.
+\end{itemize}
+
+The attribute constraints $\phi_A$ modify the function $\textsc{Dom}(a)$ in the following way:
+
+\begin{itemize}
+\item $\textsc{Dom}_\theta(a_i)$ is modified such that, $A \mapsto [\phi(a_i).x_i,\phi(a_i).y_i]$, s.t. $\{n \in \mathbb{N} \mid \phi(a_i).x_i \leq n \leq \phi(b_i).y_y \}$, that specifies the space of possible values for an attribute $a_i$.
+\end{itemize}
+
+The logical constraints may modify any other aspect of the OO-MDP representing the task $\tau$. For instance, we might imagine a constraint necessitating the existence of an object of a particular class: $\exists o \in \mathcal{O} class(o) = \texttt{agent}$, indicating that there must exist at least one agent. We could imagine extending these constraints to specify some interesting properties of a given task $\tau$:
+
+% Properties that can be specified with these constraints
+\begin{itemize}
+\item The reward function of $\tau$ is goal-directed w.r.t the predicate $p$.
+\item There are no more than $n$ objects of class $c$ in $\tau$.
+\item The only attributes that change across states are $\{a_1, \ldots, a_k\}$.
+\end{itemize}
+
+% - Subsection: Grid World -
+\subsection{Example: Grid World}
 
 % Grid World domain
 This notion of a domain accurately reflects a particular problem space. Consider the Grid World domain, defined as follows:
@@ -333,43 +335,16 @@ This notion of a domain accurately reflects a particular problem space. Consider
 \item $\textsc{Dom}(a) = \{\texttt{x} \in \mathbb{N}, \texttt{y} \in \mathbb{N},  \texttt{length} \in \mathbb{N}, \texttt{horizontal} \in \{0,1\}\}$
 \end{itemize}
 
-This is broadly what we are interested in when we think of grid world problems - an agent moving around a 2-Dimensional grid, possibly bumping into walls. Now we discuss a specific {\it task}, indicating a particular problem an agent is supposed to solve: \\
+This is broadly what we are interested in when we think of grid world problems - an agent moving around a 2-Dimensional grid, possibly bumping into walls.
 
-% Task definition
-{\definition A \textup{Task} is a fully specified OO-MDP. A task $\tau$ belongs to the domain $D$ just in case $\tau.\mathcal{C} = D.\mathcal{C}, \tau.\mathcal{T} = D.\mathcal{T}, \tau.\textsc{Att}(c) = D.\textsc{Att}(c), \tau.\mathcal{A} = D.\mathcal{A}$}.
+That is, PICTURE denotes a specific task belonging to the grid world domain. Significantly, the grid world domain $D$ contains infinitely many tasks, since $\textsc{Dom}(c)$ allows for an infinite space of attribute assignments.
 
+% More grid world stuff.
 
-That is, PICTURE denotes a specific task belonging to the grid world domain. Significantly, the grid world domain $D$ contains infinitely many tasks, since $\textsc{Dom}(c)$ allows for an infinite space of attribute assignments. Next, we introduce the {\it Task Generator}, which is central to considering related problems.
-
-% Task Generator definition
-{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D$ and a set of constraints $\theta$, and outputs a task, $\tau \in D$, such that the constraints specified by $\theta$ are true of $\tau$.}
-
-In short, we can define a domain $D$, (consider the GridWorld domain specified above), and generate random tasks from that domain. Critically, task generators are {\it randomized} - this ensures that repeated queries to a task generator with the same domain and constraints result in different tasks.
-
-The constraints, $\theta$, consists of two sets:
-
-\begin{itemize}
-\item $\theta_{A}$ is a set of constraints on attribute ranges. Namely, $\theta_{A} = \{ (a_1, x_1, y_1), \ldots, (a_k, x_k, y_k) \}$, where each triple denotes the range of possible values that attributes $a_1, \ldots, a_k$ may take on.
-\item $\theta_{P}$ is a set of logical constraints. Namely, $\theta_P = \{p_1, \ldots p_n\}$, where $p_i$ is a predicate.
-\end{itemize}
-
-The attribute constraints $\theta_A$ modify the function $\textsc{Dom}(a)$ in the following way:
-
-\begin{itemize}
-\item $\textsc{Dom}_\theta(a_i)$ is modified such that, $A \mapsto [\theta(a_i).x_i,\theta(a_i).y_i]$, s.t. $\{n \in \mathbb{N} \mid \theta(a_i).x_i \leq n \leq \theta(b_i).y_y \}$, that specifies the space of possible values for an attribute $a_i$.
-\end{itemize}
-
-The logical constraints may modify any other aspect of the OO-MDP representing the task $\tau$. For instance, we might imagine a constraint necessitating the existence of an object of a particular class: $\exists o \in \mathcal{O} class(o) = \texttt{agent}$, indicating that there must exist at least one agent. We could imagine extending these constraints to denote some interesting properties of tasks:
-
-% Properties that can be specified with these constraints
-\begin{itemize}
-\item Prop 1
-\item Prop 2
-\end{itemize}
 
 % Shoutout to PAC.
 \subsection{Computational Learning Theory}
-Alternatively, we may view a Task Generator as a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over the constraints $\theta$. That is, consider the space of tasks where the constraints $\theta.P$ are all satisfied. Then $\theta.A$ defines the space of possible values for a random variable. This consideration allows interesting extensions to Probably Approximately Correct framework. Note that different values of $\theta$ will lead to two different and possibly disjoint distributions over tasks. This problem structure lets us consider variants to the PAC problem wherein the training distribution is disjoint from the test distribution, but is related in virtue of the tasks belonging to the same domain. In future work, we would like to investigate this relationship.
+Alternatively, we may view a Task Generator as a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over the constraints $\phi$. That is, consider the space of tasks where the constraints $\phi.P$ are all satisfied. Then $\phi.A$ defines the space of possible values for a random variable. This consideration allows interesting extensions to Probably Approximately Correct framework. Note that different values of $\phi$ will lead to two different and possibly disjoint distributions over tasks. This problem structure lets us consider variants to the PAC problem wherein the training distribution is disjoint from the test distribution, but is related in virtue of the tasks belonging to the same domain. In future work, we would like to investigate this relationship.
 
 
 \subsection{Agent Space}
@@ -435,7 +410,9 @@ We define a {\it goal-based action prior} as knowledge provided to a planning al
 
 The goal is to formalize planning knowledge that allows an agent to
 avoid searching suboptimal actions in each state based on the agent's
-current goal. We define the optimal action set, $\mathcal{A}^*$, for a
+current goal. Critically, this knowledge must be defined in a way that it is applicable across tasks from the same domain.
+
+First we define the optimal action set, $\mathcal{A}^*$, for a
 given state $s$ and goal $G$ as:
 % -- Equation: Optimal Action Set --
 \begin{equation}
@@ -457,18 +434,16 @@ distribution for each action's optimality:
 \noindent for $i \in \{1, \ldots, |\mathcal{A}|\}$, where
 $\mathcal{A}$ is the OO-MDP action space for the domain.
 
-The agent space representation of the problem is abstracted
-into a set of $n$ paired preconditions and goals, $\{
+To generalize across tasks, we abstract the state
+and goal into a set of $n$ paired predicates and goals, $\{
 (p_1, g_1) \ldots (p_{n}, g_{n}) \}$. We abbreviate each pair $(p_j,
-g_j)$ to $\delta_j$ for simplicity. Each precondition $p \in
-\mathcal{P}$ is a {\it predicate} in the set of predicates $\mathcal{P}$
-defined by the OO-MDP domain, and $G$ is a {\it goal} which is a
+g_j)$ to $\delta_j$ for simplicity. Each predicate is an agent space predicate, $p \in
+\mathcal{P_agent}$ ensuring transferability between tasks, and $G$ is a {\it goal} which is a
 predicate on states that is true if and only if a state is terminal. For example, a
 predicate might be $nearTrench(agent)$ which is true when the agent is
-standing near a trench.  In general a precondition is an arbitrary
-logical expression of the state; in our experiments we used unary
-predicates defined in the OO-MDP domain. A goal specifies the
-sort of problem the agent is trying to solve, such as the agent
+standing next to a trench object.  In general these could be arbitrary
+logical expressions of the state; in our experiments we used unary
+predicates. A goal specifies the sort of problem the agent is trying to solve, such as the agent
 retrieving an object of a certain type from the environment, reaching
 a particular location, or creating a new structure.  Depending on the
 agent's current goal, the relevance of each action changes
@@ -497,12 +472,12 @@ $\phi_j = f(\delta_j, s, G)$, which we use to reformulate our probability distri
 \label{eq:feature_rep}
 \end{equation}
 
-This equation models how optimal each action is given a state, and goal. Critically, we can rewrite the lefthand side of the equation in terms of $\phi_1, \ldots, \phi_n$, which is an agent space representation of the current state. This intermediary representation is exactly what enables our agent to transfer these priors from a set of training tasks to an arbitrary task from the same domain.
+This equation models how optimal each action is given a state, and goal. Critically, we can rewrite the lefthand side of the equation in terms of $\phi_1, \ldots, \phi_n$, which provides an agent space representation of the current state. This intermediary representation is exactly what enables our agent to transfer these priors from a set of training tasks to an arbitrary task from the same domain.
 
 Furthermore, this distribution may be modeled in a number of ways, making this approach extremely flexible.
 
 % Expert Model
-{\bf Expert Model:} One model that can be easily specified by
+\subsubsection{Expert Model} One model that can be easily specified by
 an expert is an OR model.
 In the OR model some subset of the features 
 ($\phi^i \subset \phi$) are
@@ -533,7 +508,7 @@ practical for learning.
 Learned priors have the potential to outperform
 hand-coded priors by more flexibly adapting to the
 features that predict optimal actions over a large training set.
-We evaluate using two models, Naive Bayes and Logistic Regression.
+We consider two models, Naive Bayes and Logistic Regression.
 
 \subsubsection{Naive Bayes}
 An alternative more expressive model that does lend itself to learning is
@@ -570,8 +545,6 @@ Where $\phi(s)$ denotes the agent space features extracted from the state $s$ in
 0&\text{otherwise}
 \end{cases}
 \end{equation}
-
-One could consider using any model at this stage - the important point is that planning has been restructured into a learning problem.
 
 % -- Subsection: Learning the Optimal Actions--
 \subsection{Learning the Optimal Actions}
@@ -655,6 +628,8 @@ Under Naive Bayes, we found that the optimal decision rule resulted in poor perf
 
 Under Logistic Regression, we used the optimal decision rule to determine which actions were to be considered in each state.
 
+% -- Subsection: Analysis --
+\subsection{Analysis}
 
 % -- EVALUATION --
 \section{Evaluation}
@@ -844,8 +819,6 @@ Additionally, RTDP occasionally achieved a faster clock time because EP-RTDP and
 
 
 
-
-\subsection{Analysis}
 
 
 % --- Conclusion ---
