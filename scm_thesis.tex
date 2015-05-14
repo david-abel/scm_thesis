@@ -76,16 +76,14 @@ This work would not have been possible without the guidance of my Advisor Profes
 \label{sec:introduction}
 
 % Why is planning so baller?
-Probabilistic planning offers a powerful framework for general problem solving. Historically, probabilistic planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. It is not altogether surprising that planners have contributed to such disparate fields - the planning framework is an extremely versatile approach to generic problem solving. Any problem for which a goal may be expressed, in some sense, can be represented as a planning problem. Furthermore, the representational richness inherent in First Order Logic offers a succinct characterization of goals; given some representation of the problem space, one can concisely query the truth value of some first order predicates true for a particular configuration of the environment. All that remains is to specify the starting conditions, and the ways in which a planner may navigate the environment from this starting condition. In some sense, what we have just defined is just the traditional search problem in a graph.
+Planning offers a powerful framework for general problem solving. Historically, planning algorithms have contributed to a variety of critical application areas and technologies, ranging from conservation biology~\cite{possingham1997state} to self-driving cars~\cite{thrun2006stanley,montemerlo2008junior} to space exploration~\cite{bresina2005activity,backes1999automated,chien2000aspen}. It is not altogether surprising that planning algorithms have contributed to such disparate fields - the planning framework is an extremely versatile approach to generic problem solving.
 
-% More complicated than search
-The problem of interest is quite a bit more complicated than search. Probabilistic planning algorithms are designed to solve problems in domains where edge-traversal is not guaranteed to be deterministic. That is, when our algorithm traverses from vertex $v$ to vertex $w$ along edge $\langle v,w \rangle$, for $v, w \in V(G)$, there is no guarantee that the algorithm will land in vertex $w$. This inherent modeling capability accounts for a variety of complex domains whose intrinsic dynamics are non-deterministic, or in cases where our representation of a problem is abstracted to the point where the dynamics must be modeled as stochastic. For instance, in the inverted pendulum problem, whose internal state space is modeled as the real-numbered angle of the pendulum, may be represented by discretizing across angle-space. This discretization forces the dynamics to be stochastic.
-
-Ultimately, our goal is to deploy these planners into the systems that work in the actual world, and not just in simulations {\it a la} a Grid World. As a result, this investigation is focused on probabilistic planning algorithms. Henceforth, a ``planner" will implicitly specify a probabilistic planner, unless noted otherwise.
+% We're doing probabilistic planning, because we want to run this shiz in the real world.
+Ultimately our goal is to deploy planning algorithms onto systems that operate in highly complex environments, such as the actual world, and not just in deterministic simulations. As a result, this investigation focuses on {\it probabilistic} planning algorithms in order to better capture the stochasticity inherent in our experience of reality. Critically, classical deterministic planning is equivalent to the problem of search in a graph, while probabilistic planning assumes that inter-state transitions (i.e. edge traversals) are non-deterministic. That is, if our algorithm intended to traverse the edge between state $u$ and $v$, with some non-zero probability the environment may instead transition to a different state, $w$. Consequently, the problem of probabilistic planning is significantly more difficult, but allows for more accurate models of the real world (and other domains of interest).
 
 \subsection{Planning as Sequential Decision Making}
 % MDP!
-Probabilistic planning problems may be formulated as a stochastic sequential decision making problem, modeled as a Markov Decision Process (MDP). In these problems, an agent must find a mapping from states to actions for some subset of the state space that enables the agent to maximize reward over the course of the agent's existence. Of particular interest are Goal-Directed MDPs, whose execution terminates when the agent reaches a terminal or goal state. We treat the problem of an agent operating in an Goal-Directed MDP as equivalent to the probabilistic planning problem.
+Probabilistic planning problems may be formulated as a stochastic sequential decision making problem, modeled as a Markov Decision Process (MDP). In these problems, an agent must find a mapping from states to actions for some subset of the state space that enables the agent to maximize reward over the course of the agent's existence. Of particular interest are Goal-Directed MDPs, whose execution terminates when the agent reaches a terminal or goal state. We treat the problem of an agent operating in an Goal-Directed MDP as equivalent to the probabilistic planning problem, and treat all planning as probabilistic, unless stated otherwise.
 
 % P-Complete, curse of dimensionality
 Computing optimal solutions to MDPs is known to be P-Complete~\cite{littman1995complexity}, imposing a harsh constraint on the types of problems that may be solved in real time. Sadly, the state-action spaces of many problem spaces of interest grow exponentially with respect to the number of configurations of the environment.  For instance, when a robot is manipulating objects, an object can be placed anywhere in a large set of locations.  The size of the state space explodes exponentially with the number of objects and locations, which bounds the placement problems that the robot is able to expediently solve. Bellman called this problem the ``curse of dimensionality"~\cite{bellman1961adaptive}.
@@ -97,17 +95,16 @@ To confront the state-action space explosion that naturally accompanies difficul
 In this work, we develop a general framework for {\it learning to plan}, in which a planning algorithm is given access to optimal solutions to simple tasks, and then asked to solve complex tasks from the same domain. The key insight is that the planner may transfer knowledge about optimal behavior from the simple tasks to the more difficult tasks. In the psychology literature, this concept has been called {\it scaffolding}, introduced by~\cite{wood1976role}. To support this strategy, we introduce the Object-Oriented Parameterized Markov Decision Process, which is critical to the terminology that underlies this work.
 
 % GBAPs
-In particular, we develop {\it goal-based action priors}, that maintain a probability distribution on the optimality of each action relative to the agent's current space. During training, the planner is able to query the optimal behavior in a series of simple tasks - the results of these queries are used to inform the priors. During testing, the planner uses the priors to prune away irrelevant actions, consequently reducing state-action space exploration while still finding a near optimal policy.
+To demonstrate the power of scaffolding, we develop {\it goal-based action priors}, that maintain a probability distribution on the optimality of each action relative to the agent's current state. During training, the agent is able to query for optimal behavior in a series of simple tasks - the results of these queries are used to inform the priors. During testing, the planner uses the priors to prune away irrelevant actions in each explored state, consequently reducing state-action space exploration while still finding a near optimal policy.
 
-We evaluate our approach in the 3D blocks world Minecraft. Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types. Due to its complexity, Minecraft serves as a compelling simulator for the real world. It is rich enough to offer many interesting challenges, but still gives the designers of the tasks full control over what information the agent has access to. In other words, full observability is trivially provided to the agent, but also offers extensions to partial observability. There is also noise inherent in the full action set of a Minecraft agent. Additionally, the massive space of blocks allows for a gradual increase in problem complexity (with AI-Complete tasks in the upper limit), but also allows for simple enough challenges like a 2D Grid World (i.e. don't let the Minecraft agent jump). We conduct experiments on several difficult challenges, including constructing a bridge over a trench, digging underground to find a gold block, destroying a wall to reach a goal, collecting gold ore and smelting it in a furnace, and traversing large terrains to find a goal.
-
+We evaluate our approach in the 3D blocks world Minecraft. Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types. Due to its complexity, Minecraft serves as a compelling simulator for the real world. The Minecraft world is rich enough to offer many interesting challenges, but still gives designers of the tasks full control over what information the agent has access to. Additionally, The massive space of blocks allows for a gradual increase in problem complexity (with AI-Complete tasks in the upper limit), but also allows for simple enough challenges like a 2D Grid World (i.e. don't let the Minecraft agent jump). We conduct experiments on several difficult challenges, including constructing a bridge over a trench, digging underground to find a gold block, destroying a wall to reach a goal, collecting gold ore and smelting it in a furnace, and traversing vast, lava-covered terrain to find a goal.
 
 % What domains are we interested in? 
 \subsection{Domains of Interest}
 We use Minecraft as a test bed due to its relation to real world problems of interest. These include robotic navigation tasks that involve manipulation of the environment, such as pressing buttons, opening doors, and moving obstacles, as well as tackling more general problem solving strategies that include planning with 3D printers and programmable matter; a composite robot-3D printer system would dramatically increase the scope of what robots can achieve. Robots could construct entire buildings on other planets, such as structures that offer protection from the harsh environments of foreign-atmospheres. The European Space Agency is already investigating using 3D printers to construct protective domes on the moon~\cite{ceccanti20103D,Cesaretti2014430} -- however, a 3D printer alone is stationary. The physical capabilities of a robot combined with the tool generation of a 3D printer offer many compelling advances in space exploration. If a part breaks on Mars, we need not send another entire mission to Mars, our robot can simply print another one for use in construction tasks. However, the space of printable objects is so massive that searching through possible futures is computationally intractable, calling for an advanced planning system that can reason over huge spaces. In particular, we are interested in domains in which a decision making agent has a lot of power to manipulate the environment. This often translates to a large action space, but may also occur in environments that contain many objects, resulting in a exponential number of possible configurations of the objects involved.
 
 % Outline.
-The outline of this document is as follows. In the remainder of Section 1, we summarize the basic framework for learning to plan. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:learn_to_plan}, we introduce a new model, the Object-Oriented Parameterized Markov Decision Process, that supports much of the terminology introduced in this document. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce Goal-Based Action Priors, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
+The outline of this document is as follows. In the remainder of Section 1, we summarize the basic framework for learning to plan. In Section 2, we introduce the models, algorithms, and terminology needed for the duration of the paper. In Section~\ref{sec:learn_to_plan}, we introduce some structures and terminology that provide the backbone for how agents can learn to plan. In Section~\ref{sec:action_pruning} we detail related work. In Section~\ref{sec:gbaps} we introduce Goal-Based Action Priors, and overview the experimentation, analysis, and empirical results of applying these priors on a domain of interest.
 
 
 % --- Background ---
@@ -124,7 +121,7 @@ The outline of this document is as follows. In the remainder of Section 1, we su
 %
 %\subsection{Stochastic Planning}
 
-Planning for optimal behavior in the real world must account for the uncertainty inherent in our experience of reality. As a result, planning problems may be viewed as a stochastic sequential decision making problem, formalized as a Markov Decision Process.
+Planning for optimal behavior in the real world must account for the uncertainty inherent in our experience of reality. As a result, planning problems may be viewed as a stochastic sequential decision making problem, formalized as a Markov Decision Process (MDP).
 
 % MDPs
 \subsection{Markov Decision Process}
@@ -173,7 +170,7 @@ Again, for the above definition of an MDP, the Q-Function associated with follow
 Q^\pi(s,a) = \left.\E{\sum_{k=0}^\infty \gamma^k r_{t+k+1}\ \right|\ s_t = s, a_t = a}
 \end{equation}
 
-{\lemma There exists an optimal policy $\pi'$ for all finite Markov Decision Processes.}
+%{\lemma There exists an optimal policy $\pi'$ for all finite Markov Decision Processes.}
 
 
 
@@ -182,13 +179,13 @@ Q^\pi(s,a) = \left.\E{\sum_{k=0}^\infty \gamma^k r_{t+k+1}\ \right|\ s_t = s, a_
 
 There are a variety of methods for solving MDPs. Here we introduce some of the basic methods, with a special emphasis on those methods used during experimentation.
 
-\subsubsection{Policy Iteration}
+%\subsubsection{Policy Iteration}
 
 \subsubsection{Value Iteration}
 
-Value Iteration~\cite{bellman57} effectively takes the Bellman Equation from Equation~\ref{eq:bellman_equation} and turns it into an update rule. Value Iteration terminates when the change in the value function from one iteration to the next is small (below some provided valued $\varepsilon$).  Psueocode for Value Iteration may be seen in ~\ref{alg:value_iteration}.
+Value Iteration~\cite{bellman57} effectively takes the Bellman Equation from Equation~\ref{eq:bellman_equation} and turns it into an update rule. The agent considers applying each action in each state, and performs a full update on its approximation of the value function. Value Iteration terminates when the change in the value function from one iteration to the next is tiny (i.e. below some provided valued $\varepsilon$). Psueocode for Value Iteration is provided in Algorithm~\ref{alg:value_iteration}.
 
-Value Iteration notably solves for the optimal policy. It exhaustively explores the entire state space and solves for the optimal value function. As a result, Value Iteration is not applicable for real-time planning. It is however useful when optimality is extremely important.
+Value Iteration notably solves for the optimal policy; the algorithm exhaustively explores the entire state-action space and solves for the optimal value function. As a result, Value Iteration is not applicable for real-time planning. However, it is useful when optimality is extremely important.
 
 % Value Iteration Pseudo Code
 \begin{algorithm}[t]
@@ -212,15 +209,15 @@ Value Iteration notably solves for the optimal policy. It exhaustively explores 
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Real Time Dynamic Programming}
+\subsubsection{Real-Time Dynamic Programming}
 
-A more recent algorithm for solving MDPs that does target real-time use is Real Time Dynamic Programming (RTDP)~\cite{barto1995learning}. RTDP also uses the Bellman Equation to update its value function approximation, but explores the space by subsequent {\it rollouts} - that is, by repeatedly returning to the start state, sampling actions greedily, and exploring out to some depth. From these rollouts RTDP approximates the optimal value function quite well. RTDP is notably quite faster than Value Iteration since it does not explore the entire state space. Instead, it explores until the same convergence criteria as Value Iteration are satisfied, or if the algorithm has exceeded its budgeted number of rollouts. The psuedocode for RTDP may be seen in Algorithm~\ref{alg:rtdp}
+Real-Time Dynamic Programming (RTDP)~\cite{barto1995learning} is sampling-based algorithm for solving MDPs that does not require exhaustively exploring all states. RTDP also uses the Bellman Equation to update its value function approximation, but explores the space by subsequent {\it rollouts} - that is, by repeatedly returning the agent to the start state, sampling actions greedily, and exploring out to some depth specified depth. From these rollouts RTDP approximates the optimal value function quite well. RTDP is notably quite faster than Value Iteration since it does not explore the entire state space. Instead, it explores until the same convergence criteria as Value Iteration is satisfied, or if the algorithm has exceeded its budgeted number of rollouts. The psuedocode for RTDP is provided in Algorithm~\ref{alg:rtdp}
 
-Also of note that is the resulting policy is a {\it partial policy}, that is, the policy only denotes behavior for a subset of the state space. This is essential to getting planning algorithms to work in large state spaces. Furthermore, RTDP converges to the optimal policy in the limit (i.e. as the number of rollouts and depth of each rollouts goes to infinity). In practice we expect a slight tradeoff of optimality for speed, but often this tradeoff is negligible. In massive state spaces such as those we experiment in, the tradeoff is more noticeable (i.e. in order to get relatively quick solutions, optimality is sacrificed).
+Also of note is that the resulting policy is a {\it partial policy}, that is, the policy only denotes behavior for a subset of the state space. This is essential to getting planning algorithms to work in large state spaces. Furthermore, RTDP converges to the optimal policy in the limit (i.e. as the number of rollouts and depth of each rollouts goes to infinity). In practice we expect a slight tradeoff of optimality for speed, but often this tradeoff is negligible. In massive state spaces such as considered during our experimentation, the tradeoff is more noticeable (i.e. in order to get relatively quick solutions, optimality is sacrificed).
 
 % RTDP Pseudo Code
 \begin{algorithm}[t]
-\caption{Real Time Dynamic Programming}\label{alg:rtdp}
+\caption{Real Time Dynamic Programming}
 \textsc{Input:} An MDP instance, $M = \langle \mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \gamma \rangle$, and three parameters: 
 \begin{enumerate}
 \item \texttt{max-depth}, denoting the maximum rollout depth
@@ -321,7 +318,7 @@ generalizes beyond any particular Minecraft task, so long as an agent object exi
 \section{Learning To Plan}
 \label{sec:learning_to_plan}
 
-We now introduce the definitions at the core of the framework for how an agent can learn to plan. \\
+We now introduce some terminology that lets us talk precisely about agents that learn to plan.
 
 \subsection{Definitions}
 % Domain definition.-
@@ -352,18 +349,18 @@ Now we define a {\it task}, indicating a specific problem instance an agent is s
 
 % - Subsection: Task Generator -
 \subsection{Task Generators}
-Next, we introduce the {\it Task Generator}, which is central to the consideration of transferring knowledge among related problems.
+Next, we introduce the {\it Task Generator}, which is central to the consideration of transferring knowledge among related problems. \\
 
 % Task Generator definition
-{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D$ and a set of constraints $\phi$, and outputs a task, $\tau \in D$, such that the constraints specified by $\phi$ are true of $\tau$.}
+{\definition A \textup{Task Generator} is a randomized polynomial-time turing machine that takes as input a domain $D$ and a set of constraints $\phi$, and outputs a task, $\tau \in D$, such that the constraints specified by $\phi$ are satisfied by $\tau$.}
 
-In short, task generators enable us to define a domain $D$, and generate random tasks from that domain. Critically, task generators are {\it randomized} - this ensures that repeated queries to a task generator with the same domain and constraints produce different tasks.
+In short, task generators enable us to generate random tasks from a domain, $D$. Critically, task generators are {\it randomized} - this ensures that repeated queries to a task generator with the same domain and constraints produce different tasks.
 
 The constraints, $\phi$, consists of two sets:
 
 \begin{itemize}
 \item $\phi_{A}$ is a set of constraints on attribute ranges. Namely, $\phi_{A} = \{ (a_1, x_1, y_1), \ldots, (a_k, x_k, y_k) \}$, where each triple denotes the range of possible values that attributes $a_1, \ldots, a_k$ may take on.
-\item $\phi_{P}$ is a set of logical constraints. Namely, $\phi_P = \{p_1, \ldots p_n\}$, where $p_i$ is a predicate.
+\item $\phi_{P}$ is a set of logical constraints. Namely, $\phi_P = \{p_1, \ldots p_n\}$, where $p_i$ is a formula of first order logic.
 \end{itemize}
 
 The attribute constraints $\phi_A$ modify the function $\textsc{Dom}(a)$ in the following way:
@@ -372,7 +369,7 @@ The attribute constraints $\phi_A$ modify the function $\textsc{Dom}(a)$ in the 
 \item $\textsc{Dom}_\theta(a_i)$ is modified such that, $A \mapsto [\phi(a_i).x_i,\phi(a_i).y_i]$, s.t. $\{n \in \mathbb{N} \mid \phi(a_i).x_i \leq n \leq \phi(b_i).y_y \}$, that specifies the space of possible values for an attribute $a_i$.
 \end{itemize}
 
-The logical constraints may modify any other aspect of the OO-MDP representing the task $\tau$. For instance, we might imagine a constraint necessitating the existence of an object of a particular class: $\exists o \in \mathcal{O} class(o) = \texttt{agent}$, indicating that there must exist at least one agent. We could imagine extending these constraints to specify some interesting properties of a given task $\tau$:
+The logical constraints may modify any other aspect of the OO-MDP representing the task $\tau$. For instance, we might imagine a constraint necessitating the existence of an object of a particular class: $\exists_{o \in \mathcal{O}} \left(class(o) = \texttt{agent}\right)$, indicating that there must exist at least one agent. We could imagine extending these constraints to specify some interesting properties of a given task $\tau$:
 
 % Properties that can be specified with these constraints
 \begin{itemize}
@@ -385,7 +382,7 @@ The logical constraints may modify any other aspect of the OO-MDP representing t
 \subsection{Example: Grid World}
 
 % Grid World domain
-This notion of a domain accurately reflects a particular problem space. Consider the Grid World domain, $G$, defined as follows:
+ Consider the Grid World domain, $G$, defined as follows:
 \begin{itemize}
 \item $\mathcal{C} = \{\texttt{agent}, \texttt{wall}, \texttt{borderWall}\}$
 \item $\textsc{Att}(c) = \{(\texttt{agent} : x, y), (\texttt{wall} : x, y), (\texttt{borderWall} : length, horizontal)\}$
@@ -393,9 +390,19 @@ This notion of a domain accurately reflects a particular problem space. Consider
 \item $\textsc{Dom}(a) = \{\texttt{x} \in \mathbb{N}, \texttt{y} \in \mathbb{N},  \texttt{length} \in \mathbb{N}, \texttt{horizontal} \in \{0,1\}\}$
 \end{itemize}
 
-This is broadly what we are interested in when we think of grid world problems - an agent moving around a two dimensional grid, possibly bumping into walls.
+% Grid world examples
+\begin{figure}
+\centering
+\subfigure[A task in the Grid World domain generated with constraints $\phi_{small}$]{
+\includegraphics[width=0.32\linewidth]{figures/small_grid.png}}\hspace{10mm}
+\subfigure[A task in the Grid World domain generated with constraints $\phi_{large}$]{
+\includegraphics[width=0.32\linewidth]{figures/large_grid.png}}
+  \caption{Different randomly generated tasks from the Grid World domain.}
+  \label{fig:grid_examples}
+\end{figure}
 
-We then consider two sets of constraints:
+Note that the grid world domain $G$ contains infinitely many tasks, since $\textsc{Dom}(c)$ allows for an infinite space of attribute assignments. With a set of constraints, $\phi$, the space is constrained, so there are only finitely many tasks. We consider two sets of constraints:
+
 \begin{itemize}
 \item $\phi_{small}.A = \{ (\texttt{borderWall.length}, 2, 8), (\texttt{borderWall.height}, 2, 8) \}$
 \item $\phi_{large}.A = \{ (\texttt{borderWall.length}, 8, 16), (\texttt{borderWall.height}, 8, 16) \}$
@@ -403,20 +410,7 @@ We then consider two sets of constraints:
 
 Let $\phi_{small}.P = \phi_{large}.P = \{\exists_{o \in \mathcal{O}} \left(class(o) = \texttt{agent}\right),\ goalDirected(\mathcal{R}, atLocation)\}$.
 
-Consider a Task Generator $\Omega$. Given $\phi_{small}$ and the Grid World domain $G$, the task generator randomly creates tasks where the grid dimensions are between 2 and 4, and there is an agent placed randomly in the grid. Additionally, the reward function is goal-directed with respect to an $atLocation$ predicate, meaning that the agent receives positive reward when it is at a particular randomized location in the grid.
-
-% Grid world examples
-\begin{figure}
-\centering
-\subfigure[A small task generated with constraints $\phi_{small}$]{
-\includegraphics[width=0.32\linewidth]{figures/small_grid.png}}\hspace{10mm}
-\subfigure[A large task generated with constraints $\phi_large$]{
-\includegraphics[width=0.32\linewidth]{figures/large_grid.png}}
-  \caption{Different randomly generated tasks from the Grid World domain.}
-  \label{fig:grid_examples}
-\end{figure}
-
-Significantly, the grid world domain $G$ contains infinitely many tasks, since $\textsc{Dom}(c)$ allows for an infinite space of attribute assignments. With a set of constraints, $\phi$, the space is constrained, so there are only finitely many tasks.
+Consider a Task Generator $\Omega$. Given $\phi_{small}$ and the Grid World domain $G$, the task generator randomly creates tasks where the grid dimensions are between 2 and 8, and there is an agent placed randomly in the grid. Additionally, the reward function is goal-directed with respect to an $atLocation$ predicate, meaning that the agent receives positive reward when it is at a particular randomized location in the grid.
 
 Figure~\ref{fig:task_generator} shows the full task generation pipeline. Given a set of constraints, $\phi_{small}$, and a domain $G$, we make three queries to $\Omega$ to generate three tasks, $\tau_1, \tau_2, \tau_3$.
 
@@ -428,10 +422,12 @@ Figure~\ref{fig:task_generator} shows the full task generation pipeline. Given a
 \caption{Three example tasks from the Grid World domain generated by $\Omega$.}
 \end{figure}
 
+Using task generators, we investigate families of related planning problems. 
+%Critically, we can specify the ways in which tasks are related. That is, we can create two distinct sets of related constraints, as with $\phi_{small}$ and $\phi_{large}$. We then have explicit knowledge of the ways in which tasks generated from each constraint set will be related. Using an intermediary representation, we can then transfer knowledge across tasks.
 
 % Shoutout to PAC.
 \subsection{Computational Learning Theory}
-Alternatively, we may view a Task Generator instance as a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over the constraints $\phi.A$. That is, consider the space of tasks where the constraints $\phi.P$ are all satisfied. Then $\phi.A$ defines the space of possible values for a random variable. This consideration allows interesting extensions to the Probably Approximately Correct framework. Note that different values of $\phi.A$ will lead to two different and possibly disjoint distributions over tasks. This problem structure lets us consider variants to the PAC problem wherein the training distribution is disjoint from the test distribution, but is related in virtue of the tasks belonging to the same domain. ~\cite{baxter2000model} performed a theoretical investigation into the PAC framework where the training and test distributions are disjoint. In future work, we would like to further this investigation in the context of learning to plan.
+Alternatively, we may view a Task Generator instance as a probability distribution over the space of tasks defined by the domain $D$ with respect to the uniform distribution over the constraints $\phi.A$. That is, consider the space of tasks where the constraints $\phi.P$ are all satisfied. Then $\phi.A$ defines the space of possible values for a random variable. This consideration allows interesting extensions to the Probably Approximately Correct (PAC) framework~\cite{valiant1984theory}. Note that different values of $\phi.A$ (e.g. $\phi_{small}$ vs. $\phi_{large}$) will lead to two different and possibly disjoint distributions over tasks. This problem structure lets us consider variants to the PAC problem wherein the training distribution is disjoint from the test distribution, but is related in virtue of the tasks belonging to the same domain. ~\cite{baxter2000model} performed a theoretical investigation of the PAC framework where the training and test distributions are disjoint. In future work, we are interested in furthering this investigation in the context of agents that learn to plan.
 
 \subsection{Agent Space}
 Consider two tasks $\tau_1$ and $\tau_2$, both belonging to the same domain $D$. The critical observation is that knowledge acquired by solving $\tau_1$, that is, computing the optimal policy $\pi_1$, may be useful when solving $\tau_2$. Consider the case that $\tau_1 = \tau_2$. Then clearly determining the optimal policy for $\tau_2$ is trivial.
@@ -440,7 +436,7 @@ Consider that $\tau_1$ and $\tau_2$ both have Goal-Based Reward Functions operat
 
 Thus, the idea is to use our knowledge of what is shared between two tasks belonging to the same domain in order to {\it translate} between them. Since the both $\tau_1$ and $\tau_2$ share object classes, we know that predicates operating on objects are guaranteed to preserve meaning across tasks. Critically, relations among objects will still be relevant across tasks. For instance, predicates that operate on the attributes of the agent will necessarily transfer between $\tau_1$ and $\tau_2$, assuming these tasks were generated under the constraint that an agent object exists in the task.
 
-One example of knowledge that can be learned from a series of training tasks are {\it goal-based action priors}. These priors are represented in agent space, enabling transfer across tasks from the same domain. Critically, these priors prune away actions on a state by state basis for any task belonging to the target domain, reducing the number of state-action pairs the agent needs to evaluate in order to perform optimally. We now introduce these priors.
+In this work we learn goal-based action priors from a series of training tasks, sampled from the domain $D$. These priors are represented in agent space, enabling transfer across tasks from the same domain. These priors are used to prune away actions on a state by state basis for any task belonging to the target domain, reducing the number of state-action pairs the agent needs to evaluate in order to perform optimally. Ultimately, planning algorithms equipped with these priors are capable of solving significantly more difficult problems than algorithms without them. We present these priors inside the framework of learning to plan.
 
 % --- Goal-Based Action Priors
 \section{Goal-Based Action Priors}
@@ -452,42 +448,39 @@ enables an agent to prune irrelevant actions on a
 state-by-state basis according to the agent's current goal, focusing the agent on
 the most promising parts of the state space. The agent will learn these priors from solving simple task instances and use this knowledge on more complex tasks generated from the same domain.
  
-Goal-based action priors can be specified by hand or learned by repeated queries to a Task Generator for a given domain $D$, making them a concise, transferable, and learnable means of
-representing useful planning knowledge. 
+Goal-based action priors can be specified by hand or learned by repeated queries to a Task Generator, $\Omega$, for a given domain $D$, making them a concise, transferable, and learnable means of representing useful planning knowledge. 
 
 Our results demonstrate
 that these priors provide dramatic improvements for a variety of
 planning tasks compared to baselines in simulation, and are applicable
 across different tasks.  Moreover, while manually provided
 priors outperform baselines on difficult problems, our approach
-is able to learn goal-based action priors from experience on simple, tractable, 
-training problems that yield even greater performance on the difficult problems
+is able to learn goal-based action priors on simple, tractable, 
+training problems that yield even greater performance on the test problems
 than manually provided priors.
 
-As discussed previously, we conduct experiments in Minecraft. Figure~\ref{fig:example}
-shows an example of two problems from the same domain in the game
-Minecraft; the agent learns on simple tasks produced by a Task Generator,
+We conduct experiments in Minecraft. Figure~\ref{fig:example}
+shows an example of two problems from the Minecraft domain; the agent learns on simple tasks,
 (like the problem in the left image) and tests
-on new harder problems from the same domain that it has never previously
-encountered (like the problem in the right image). All associated code with this paper may be found at
-http://h2r.cs.brown.edu/affordances.
+on more challenging tasks from the same domain that it has never previously
+encountered (like the problem in the right image).
 
 \subsection{Approach}
 We define a {\it goal-based action prior} as knowledge provided to a planning algorithm to help reduce problem complexity. These priors are used to prune actions on a state by state basis, which naturally reduces the number of state-action pairs the agent needs to evaluate. The key observation is that for action-rich domains (i.e. $\mathcal{A}$ is large), many actions are not relevant in every state, but are still relevant at some point in the task. Using goal-based action priors, an agent will be biased toward the most relevant action applications for each state, encouraging the agent to explore the most promising parts of the state space.
 
-% -- Figure: Minecraft pic --
-\begin{figure}[t]
-\centering
-\subfigure[Mine the gold and smelt it in the furnace]{
-\includegraphics[width=0.3\linewidth]{figures/smelt_scaled_small.jpg}}
-\subfigure[Dig down to the gold and mine it, avoiding lava.]{
-\includegraphics[width=0.3\linewidth]{figures/mining_labeled.jpg}}
-\subfigure[Navigate to the goal location, avoiding lava.]{
-\includegraphics[width=0.3\linewidth]{figures/plane.jpg}}
-  \caption{Three different problems from the Minecraft domain.}
-  \label{fig:minecraft}
-\end{figure}
-
+% Affordance stuff
+These priors are inspired by affordances.
+Affordances were originally proposed by \cite{gibson77} as action possibilities
+prescribed by an agent's capabilities in an environment, and have recently
+received a lot of attention in robotics research~\cite{koppula13a,koppula13c}. In a recent review on the theory of affordances,~\cite{chemero2003}
+suggests that an affordance is a relation between the features of an
+environment and an agent's abilities. It is worth noting that the formalism
+proposed by Chemero differs from the interpretation of affordance that is
+common within the robotics community. Our goal-based action priors are
+analogously interpreted as a grounding of Chemero's interpretation of an affordance,
+where the features of the environment correspond to
+the goal-dependent state features, and the agent's abilities
+correspond to the OO-MDP action set.
 
 % -- Subsection: Modeling the Optimal Actions --
 \subsection{Modeling the Optimal Actions}
@@ -553,10 +546,10 @@ $\phi_j = f(\delta_j, s, G)$, which we use to reformulate our probability distri
 % -- Equation: Master Equation --
 \begin{equation}
 \Pr(a_i \in \mathcal{A}^*  \mid s, G, \delta_1 \ldots \delta_n) = \Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n)
-\label{eq:feature_rep}
+\label{eq:master_eq}
 \end{equation}
 
-This equation models how optimal each action is given a state, and goal. Critically, we can rewrite the lefthand side of the equation in terms of $\phi_1, \ldots, \phi_n$, which provides an agent space representation of the current state. This intermediary representation is exactly what enables our agent to transfer these priors from a set of training tasks to an arbitrary task from the same domain.
+This equation models how optimal each action is given a state, and goal. Critically, we can rewrite the lefthand side of the equation in terms of $\phi_1, \ldots, \phi_n$, which provides an agent space representation of the current state. This intermediary representation is exactly what enables our agent to transfer these priors from a set of training tasks to arbitrary tasks from the same domain.
 
 This distribution may be modeled in a number of ways, making this approach extremely flexible.
 
@@ -570,7 +563,7 @@ the features is on, the probability that $a_i$ is optimal is one.
 If none of the features are on, then the probability that $a_i$ is 
 optimal is zero. More formally,
 \begin{equation}
-\Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n) = \phi_1^i \lor ... \lor \phi_m^i,
+\Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n) = \phi_1^i \lor ... \lor \phi_m^i
 \end{equation}
 where $m$ is the number of features that can cause $a_i$ to be optimal ($m = |\phi^i|$).
 
@@ -589,16 +582,14 @@ for an action to be provided when a feature is off), the model is not
 practical for learning.
 
 % Learned Priors
-Our real goal is to learn from a series of simple tasks, and use this knowledge to solve much more challenging problems. Again, this strategy is heavily inspired by the notion of scaffolding discussed earlier.
-
-Furthermore, learned priors have the potential to outperform
+Our real goal is to learn from a series of simple tasks, and use this knowledge to solve much more challenging problems from the same domain.
+Learned priors have the potential to outperform
 hand-coded priors by more flexibly adapting to the
 features that predict optimal actions over a large training set.
-We consider two models, Naive Bayes and Logistic Regression.
+We consider two models for learning: Naive Bayes and Logistic Regression.
 
 \subsubsection{Naive Bayes}
-An alternative more expressive model that does lend itself to learning is
-Naive Bayes. We first factor using Bayes' rule, introducing a parameter vector $\theta_i$ of
+We first factor Equation~\ref{eq:master_eq} using Bayes' rule, introducing a parameter vector $\theta_i$ of
 feature weights:
 
 % -- Equation: Bayes --
@@ -619,15 +610,15 @@ the fraction of the time each action was optimal during training.
 
 \subsubsection{Logistic Regression}
 
-In Logistic Regression, classification is computed by a logistic threshold function. That is, a vector of weights $\vec{w}$ is learned that determines the optimal decision boundary:
+Under the Logistic Regression model, classification is computed by a logistic threshold function. That is, for each action, we learn a vector of weights $\vec{w}$ that determines the optimal decision boundary:
 \begin{equation}
-\textsc{LogReg}(s) = \frac{1}{1 + e^{-\vec{w} \cdot \phi(s)}}
+\textsc{LogReg}_{a_i}(s, G) = \frac{1}{1 + e^{-\vec{w}_{a_i} \cdot \phi(s, G)}}
 \end{equation}
 
 Where $\phi(s)$ denotes the agent space features extracted from the state $s$ introduced above. Then, our decision rule for classification is simply:
 \begin{equation}
 \begin{cases}
-1&\textsc{LogReg}(s) \geq 0.5 \\
+1&\textsc{LogReg}_{a_i}(s) \geq 0.5 \\
 0&\text{otherwise}
 \end{cases}
 \end{equation}
@@ -665,10 +656,23 @@ C(\phi_j, a_i) &= \sum_{w \in W} \sum_{s \in w} (a_i  \in \pi_w(s) \wedge \phi_j
 To compute the optimal decision boundary for Logistic Regression, we compute gradient descent using the $L_2$ loss function, resulting in the following update rule:
 
 \begin{equation}
-w_i \leftarrow w_i + \alpha(y - \textsc{LogReg}(s)) \times \textsc{LogReg}(s)(1 - \textsc{LogReg}(s))
+w_{ij} \leftarrow w_{ij} + \alpha(y_a - \textsc{LogReg}_{a_i}(s, G)) \times \textsc{LogReg}_{a_i}(s, G)(1 - \textsc{LogReg}_{a_i}(s, G))
 \end{equation}
 
 We optimize until convergence.
+
+% -- Figure: Minecraft pic --
+\begin{figure}
+\centering
+\subfigure[Mine the gold and smelt it in the furnace]{
+\includegraphics[width=0.3\linewidth]{figures/smelt_scaled_small.jpg}}
+\subfigure[Dig down to the gold and mine it, avoiding lava.]{
+\includegraphics[width=0.3\linewidth]{figures/mining_labeled.jpg}}
+\subfigure[Navigate to the goal location, avoiding lava.]{
+\includegraphics[width=0.3\linewidth]{figures/plane.jpg}}
+  \caption{Three different problems from the Minecraft domain.}
+  \label{fig:minecraft}
+\end{figure}
 
 During the learning phase, the agent learns when actions are useful
 with respect to the agent space features.  For example, consider the three different
@@ -682,19 +686,15 @@ irrelevant to smelting).  This information informs the distribution
 over the optimality of the \texttt{destroy} action, which is used at
 test time to encourage the agent to destroy blocks when trying to
 smelt gold and looking at gold ore, but not in other situations
-(unless the prior suggests using \texttt{destroy}). Example
-learned priors are shown in~\ref{fig:example_affs}.
+(unless the prior suggests using \texttt{destroy}).
 
-% Sample priors
-\begin{figure}
-\centering
-\subfigure[agentLookTowardGoal]{
-\includegraphics[scale=0.17]{figures/plane_aff.png}}
-\subfigure[trenchInFrontOfAgent]{
-\includegraphics[scale=0.17]{figures/trench_aff.png}}
-\label{fig:example_affs}
-\caption{When the agent is looking toward its goal location, it is generally better to move forward than do anything else. Alternatively, when the agent is faced with a trench, the agent should walk along the trench to look for gaps, or build a bridge across by looking down and placing blocks.}
-\end{figure}
+%% Sample priors
+%\begin{figure}[b]
+%\centering
+%\includegraphics[scale=0.25]{figures/sample_prior.png}
+%\label{fig:example_affs}
+%\caption{When the agent is looking toward its goal location, it is generally better to move forward than do anything else.}
+%\end{figure}
 
 At test time, we query $\Omega$ with a different set of constraints, $\phi_{\textsc{Test}}$ but the same domain $D$. Notably, $\phi_{\textsc{Test}}$ will necessitate larger, more complicated tasks than those trained on. For simplicity, our learning process uses a strict separation between training and test; after learning is complete our model parameters/weights remain fixed.
 
@@ -711,29 +711,29 @@ action $a_i$ remains in the action set to be searched by the planner.
 % What to do with logreg/naive bayes
 Under Naive Bayes, we found that the optimal decision rule resulted in poor performance as a consequence of pruning away too many actions. Instead, we imposed a more conservative threshold, only pruning away actions if they were extremely unlikely to be sub-optimal.
 
-Under Logistic Regression, we used the optimal decision rule to determine which actions were to be considered in each state.
+Under Logistic Regression, we used the optimal decision rule to determine which actions were to be considered in each state. We bias each distribution by normalizing each distribution's weight with respect to the maximally likely action. Specifically:
+\begin{equation}
+\Pr(a_i \in \mathcal{A}^*  \mid \phi_1, \ldots, \phi_n) = \frac{\textsc{LogReg}_{a_i}(s, G)}{\max_j \textsc{LogReg}_{a_j}(s, G)}
+\end{equation}
+
+This ensures that the maximally likely action will {\it always} be selected.
 
 % -- Subsection: Analysis --
-\subsection{Analysis}
+%\subsection{Analysis}
+%
+%Notably, under the logistic regression model, these priors have the desirable behavior of not affecting their associated planner's optimality guarantees in the limit. Since the decision rules used by the Expert-OR model and the Naive Bayes model have the potential to completely reject actions deterministically, it is possible for them to prune away optimal actions. If they deterministically prune away optimal actions for a subset of the states, then they will not solve for an optimal policy.
+%
+%With the logistic regression model, we sample from each action's Bernouli in each state to determine which actions to prune. Therefore, each action will necessarily have a non-zero probability of being sampled (with standard regularization techniques each action will necessarily have a non-zero probability for in each state). Thus, in the limit, the action set used in each state is equivalent to the full action set, $\mathcal{A}$. Consequently, if goal-based action priors are being used by a planner with optimality guarantees in the limit, these guarantees are preserved. \\
+%
+%{\theorem Under the Logistic Regression model, Goal-Based Action Priors do not modify the optimality guarantees of the associated planner}
 
 % -- EVALUATION --
 \section{Evaluation}
 \label{sec:evaluation}
 
-We evaluate our approach using the game Minecraft. Minecraft is a 3D blocks game in which the
-user can place, craft, and destroy blocks of different types.
-Minecraft's physics and action space allow users to create complex
-systems, including logic gates and functional scientific graphing
-calculators.
-
-Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types.
+We evaluate our approach using the game Minecraft. Minecraft is a voxel-based simulation in which the user-controlled agent can place, craft, and destroy blocks of different types.
 Minecraft's physics and action space are extremely expressive and allow users to create complex objects and systems, including logic gates and functional scientific graphing calculators.
 Minecraft serves as a model for complicated real world systems such as robots traversing complex terrain, and large scale construction projects involving highly malleable environments.  As in these tasks, the agent operates in a very large state-action space in an uncertain environment. Figure~\ref{fig:minecraft} shows three example scenes from Minecraft problems that we solve.
-
-%Additionally, we used expert-provided priors to
-%enable a manipulator robot to infer helpful actions in response to a
-%person working on a kitchen task, shown in Figure~\ref{fig:baxter_results}.
-
 
 \subsection{Experiments}
 Our experiments consist of five common tasks in Minecraft:
@@ -741,19 +741,16 @@ bridge construction, gold smelting, tunneling through
 walls, digging to find an object, and path planning.
 
 % TRAINING
-The training set consists of 20 randomly generated tasks for each goal, for a total of 100 instances. Each instance is extremely simple: 1,000-10,000 states (small enough to solve with tabular approaches). The output of our training process is the model parameter $\theta$ or the weight vector $\vec{w}$, which inform our goal-based action prior depending on which model we are using. The full training process takes approximately one hour run in parallel on a computing grid, with the majority of time devoted to computing the optimal value function for each training instance.
+The training set consists of 20 randomly generated tasks for each goal, for a total of 100 instances. Each instance is guaranteed to be extremely simple: 1,000-10,000 states (small enough to solve with tabular approaches). We specified a set of constraints $\phi_{train}$ that ensured that the generated tasks would be small. The output of our training process is the model parameter $\theta$ or the weight vector $\vec{w}$, which inform our goal-based action prior depending on which model we are using. The full training process takes approximately one hour run in parallel on a computing grid, with the majority of time devoted to computing the optimal value function for each training instance.
 
 % TEST
-The test set consists of 20 randomly generated tasks from the same domain, with the same five goals, for a total of 100 instances. Each instance is extremely complex: 50,000-1,000,000 states (which is far too large to solve with tabular approaches).
+The test set consists of 20 randomly generated tasks from the same domain, with the same five goals, for a total of 100 instances. Each instance is extremely complex: 50,000-1,000,000 states (which is far too large to solve with tabular approaches). We specified a set of constraints $\phi_{test}$ that ensured that the generated tests would be massive.
 
 We fix the number of features at the start of training based on the number
 predicates defined by the OO-MDP, $|\mathcal{P}|$, and the number of goals, $|G|$.
 We provide our system with a set of 51 features that are likely to aid in predicting the correct action across instances.
 
-We use Real-Time Dynamic Programming (RTDP)~\cite{barto95} as our
-baseline planner, a sampling-based algorithm that does not require the
-planner to exhaustively explore states. We compare RTDP with
-priors learned under Naive Bayes used in RTDP (LP-RTDP), and expert priors RTDP (EP-RTDP).
+We compare RTDP with priors learned under Naive Bayes used with RTDP (NBP-RTDP), and expert priors RTDP (EP-RTDP).
 We terminate each planner when the maximum change in
 the value function is less than 0.01 for 100 consecutive policy
 rollouts, or the planner fails to converge after 1000 rollouts.  The
@@ -765,15 +762,15 @@ movement actions (move, rotate, jump) in all experiments have a small
 probability (0.05) of incorrectly applying a different movement
 action.  This noise factor approximates noise faced by a physical
 robot that attempts to execute actions in a real-world domain and
-can affect the optimal policy due to the existence of lava pits
+can affect the optimal policy due to the existence of lava.
 
 We report the number of Bellman updates executed by each planning
 algorithm, the accumulated reward of the average plan, and the CPU
 time taken to find a plan. Table~\ref{table:minecraft_results} shows
 the average Bellman updates, accumulated reward, and CPU time for
-RTDP, LP-RTDP and EP-RTDP after planning in 20 different maps of each
+RTDP, NBP-RTDP and EP-RTDP after planning in 20 different tasks of each
 goal (100 total). Figure~\ref{fig:average_results} shows the
-results averaged across all maps.  We report CPU time for
+results averaged across all tasks.  We report CPU time for
 completeness, but our results were run on a networked cluster where
 each node had differing computer and memory resources. As a result,
 the CPU results have some variance not consistent with the number of
@@ -782,40 +779,40 @@ noise, overall the average CPU time shows statistically significant
 improvement overall with our priors, as shown in
 Figure~\ref{fig:average_results}. Furthermore, we reevaluate each
 predicate every time the agent visits a state, which could be optimized by caching predicate evaluations, further
-reducing the CPU time taken for EP-RTDP and LP-RTDP.
+reducing the CPU time taken for EP-RTDP and NBP-RTDP.
 
 \subsection{Results}
 
 % -- Table: Minecraft Naive Bayes results --
 \begin{table}
 \centering
-\ra{1.15}
+\ra{1.1}
 \small
 \begin{tabular}{@{}llll@{}}\toprule
 Planner & Bellman & Reward & CPU \\ \midrule
 &\hspace{-10mm}{\it Mining Task} \\
 \texttt{RTDP} & 17142.1 ($\pm$3843) 		& {\bf -6.5} ($\pm$1)  & {\bf 17.6s}   ($\pm$4) \\
 \texttt{EP-RTDP} 	& 14357.4 ($\pm$3275) 		& {\bf -6.5}   ($\pm$1) & 31.9s   ($\pm$8) \\
-\texttt{LP-RTDP} 	& {\bf 12664.0} ($\pm$9340) 	& -12.7 ($\pm$5) & 33.1s   ($\pm$23) \\\hline
+\texttt{NBP-RTDP} 	& {\bf 12664.0} ($\pm$9340) 	& -12.7 ($\pm$5) & 33.1s   ($\pm$23) \\\hline
 &\hspace{-10mm}{\it Smelting Task} \\
 \texttt{RTDP} 	& 30995.0 ($\pm$6730) 		& {\bf -8.6}   ($\pm$1) & 45.1s   ($\pm$14) \\
 \texttt{EP-RTDP} 	& 28544.0 ($\pm$5909) 		& {\bf -8.6}   ($\pm$1) & 72.6s   ($\pm$19) \\ 
-\texttt{LP-RTDP} 	& {\bf 2821.9} 	 ($\pm$662) 	& -9.8   ($\pm$2) & {\bf 7.5s}  ($\pm$2) \\ \hline
+\texttt{NBP-RTDP} 	& {\bf 2821.9} 	 ($\pm$662) 	& -9.8   ($\pm$2) & {\bf 7.5s}  ($\pm$2) \\ \hline
 &\hspace{-10mm}{\it Wall Traversal Task} \\
 \texttt{RTDP} & 45041.7 ($\pm$11816) 		& -56.0   ($\pm$51) & {\bf 68.7s}   ($\pm$22) \\
 \texttt{EP-RTDP} 	& 32552.0 ($\pm$10794) 		& -34.5   ($\pm$25) & 96.5s   ($\pm$39) \\ 
-\texttt{LP-RTDP} 	& {\bf 24020.8} ($\pm$9239) 	& {\bf -15.8}   ($\pm$5) & 80.5s   ($\pm$34) \\ \hline
+\texttt{NBP-RTDP} 	& {\bf 24020.8} ($\pm$9239) 	& {\bf -15.8}   ($\pm$5) & 80.5s   ($\pm$34) \\ \hline
 &\hspace{-10mm}{\it Trench Traversal Task} \\
 \texttt{RTDP}  	& 16183.5 ($\pm$4509) 		& {\bf -8.1}   ($\pm$2) & 53.1s   ($\pm$22) \\
 \texttt{EP-RTDP} 	& {\bf 8674.8} 	($\pm$2700) 	& -8.2   ($\pm$2) & {\bf 35.9s}   ($\pm$15) \\ 
-\texttt{LP-RTDP} 	& 11758.4 ($\pm$2815) 		& -8.7   ($\pm$1) & 57.9s   ($\pm$20) \\ \hline
+\texttt{NBP-RTDP} 	& 11758.4 ($\pm$2815) 		& -8.7   ($\pm$1) & 57.9s   ($\pm$20) \\ \hline
 &\hspace{-10mm}{\it Plane Traversal Task} \\
 \texttt{RTDP} & 52407 ($\pm$18432) 		& -82.6   ($\pm$42) & 877.0s   ($\pm$381) \\
 \texttt{EP-RTDP} 	& 32928 ($\pm$14997) 		& -44.9   ($\pm$34) & 505.3s   ($\pm$304) \\
-\texttt{LP-RTDP} 	& {\bf 19090} 	 ($\pm$9158) 	& {\bf-7.8}   ($\pm$1) & {\bf 246s}  ($\pm$159) \\
+\texttt{NBP-RTDP} 	& {\bf 19090} 	 ($\pm$9158) 	& {\bf-7.8}   ($\pm$1) & {\bf 246s}  ($\pm$159) \\
 \bottomrule
 \end{tabular}
-\caption{RTDP vs. EP-RTDP vs. LP-RTDP}
+\caption{RTDP vs. EP-RTDP vs. NBP-RTDP}
 \label{table:minecraft_results}
 \end{table}
 
@@ -823,73 +820,73 @@ Planner & Bellman & Reward & CPU \\ \midrule
 \begin{figure}[t]
 %\begin{figure}
 \centering
-\includegraphics[width=1\linewidth]{figures/average_results_cropped.png}%
+\includegraphics[width=1\linewidth]{figures/avg_results.png}%
 %\includegraphics[scale=0.18]{figures/average_results_cropped.png}%
-\caption{Average results from all maps.}
+\caption{Average results from all tasks.}
 \label{fig:average_results}
 \end{figure}
 %\end{figure}
 
 Because the planners terminate after a maximum of 1000
-rollouts, they do not always converge to the optimal policy. LP-RTDP on
+rollouts, they do not always converge to the optimal policy. NBP-RTDP on
 average finds a comparably better plan (10.6 cost) than EP-RTDP (22.7
 cost) and RTDP (36.4 cost), in significantly fewer
 Bellman updates (14287.5 to EP-RTDP's 24804.1 and RTDP's 34694.3), and in
 less CPU time (93.1s to EP-RTDP's 166.4s and RTDP's 242.0s).  These
 results indicate that while learned priors provide the largest
 improvements, expert-provided priors can also significantly
-enhance performance. Depending on the domain, expert-provided priors can add
+enhance performance. Expert-provided priors can add
 significant value in making large state spaces tractable without the
 overhead of supplying training worlds.
 
-For some task types, LP-RTDP finds a slightly worse plan on average than
-RTDP ({\em e.g.} the mining task). This worse convergence is due to the fact that LP-RTDP
+For some task types, NBP-RTDP finds a slightly worse plan on average than
+RTDP ({\em e.g.} the mining task). This worse convergence is due to the fact that NBP-RTDP
 occasionally prunes actions that are in fact optimal (such as
 pruning the \texttt{destroy} action in certain states of the mining task).
 %To fix this, we could lower the threshold to allow for even more conservative action pruning. In future work, we plan on investigating approaches
 %to dynamically adjusting the threshold based on planning feedback. 
-Additionally, RTDP occasionally achieved a faster clock time because EP-RTDP and LP-RTDP also evaluate several OO-MDP predicates in every state, adding a small amount of time to planning.
+Additionally, RTDP occasionally achieved a faster clock time because EP-RTDP and NBP-RTDP also evaluate several OO-MDP predicates in every state, adding a small amount of time to planning.
 
 \subsubsection{Logistic Regression Results}
-We conducted similar experiments comparing the Logistic Regression model to Bounded RTDP. In these experiments, we provided a smaller feature set, and only tested on a single goal type. These experiments were conducted as a proof of concept to verify that Logistic Regression can effectively learn useful priors.
+We followed this set of experiments by comparing Bounded RTDP (BRTDP) with and without priors learned with the Logistic Regression model (LRP-BRTDP). In these experiments, we provided a smaller feature set (only 6 features were used), and only tested on tasks of a single goal type. These experiments were conducted as a proof of concept to verify that Logistic Regression can effectively learn useful priors, too.
 
 In particular, we evaluated on significantly larger tasks than with Naive Bayes. The training tasks are each of a similar size - roughly 1,000-10,000 states. The test tasks are all larger than 1,000,000 states, with several approaching 10,000,000. Each task was provided a goal-directed reward function, defined by the predicate that evaluates whether an agent is at a particular coordinate of the world. In other words, these tasks were large obstacle courses. Lava was scattered randomly throughout the world, and the agent was given blocks to plug up the lava if it desired (one could imagine cases where this is optimal behavior). We conducted tests on 20 randomly generated tasks.
 
-The results are summarized in Table~\ref{table:log_reg_results}. Here we see that in these much larger worlds, 
+The results are summarized in Table~\ref{table:log_reg_results}. Here we see that in these much larger worlds, BRTDP rarely computes an optimal policy. Again, we cut off all planners after 1000 rollouts. If BRTDP were given more rollouts, it would eventually compute an optimal policy, but at the cost of more planning time. Clearly, in this problem, the priors improve planning dramatically - the policy computed by LRP-BRTDP produced an average of cost 10.1, compared to BRTDP's  175.1. Additionally, the policies were computed in dramatically less time (roughly 1 minute to 7 minutes).
 
+% Log Reg results
 \begin{table}
 \centering
 \ra{1.1}
 \small
 \begin{tabular}{@{}llll@{}}\toprule
 Planner & Bellman & Reward & CPU \\ \midrule
-\texttt{BRTDP}   			&	40800 ($\pm$2348)		&	-135.3 ($\pm$9)		& 573.6 ($\pm$33) \\
-\texttt{LR-BRTDP} 			& 	{\bf 18770} ($\pm$1031)	&	{\bf -15.0} ($\pm$1)& {\bf 129.6} ($\pm$5) \\ \hline
+\texttt{BRTDP}   			&	33677.8 ($\pm$6090.7)		&	-175.1 ($\pm$40.9)	& 449.5 ($\pm$85.4) \\
+\texttt{LRP-BRTDP} 			& 	{\bf 10963.6} ($\pm$4527.9)	&	{\bf -10.1} ($\pm$2.0)& {\bf 75.03} ($\pm$32.9) \\ \hline
 \end{tabular}
-\caption{Logistic Regression GBAPs vs. Bounded-RTDP}
+\caption{Logistic Regression Priors vs. Bounded-RTDP}
 \label{table:log_reg_results}
 \end{table}
 
-% Need an image.
 
 \subsubsection{Temporally Extended Actions and Goal-Based Action Priors}
 
 The primary defect with including temporally extended actions in the action space is that the branching factor increases, consequently increasing planning time. With the use of goal-based action priors, the agent will learn to prune away irrelevant action applications, including options and macro actions. As a result, goal-based action priors and temporally extended actions are quite complementary.
 
-\begin{table}
+\begin{table}[b]
 \centering
 \ra{1.1}
 \small
 \begin{tabular}{@{}llll@{}}\toprule
 Planner & Bellman & Reward & CPU \\ \midrule
 \texttt{RTDP}   			&	27439 ($\pm$2348)		&	-22.6 ($\pm$9)		& 107 ($\pm$33) \\
-\texttt{LP-RTDP} 			& 	{\bf 9935} ($\pm$1031)	&	{\bf -12.4} ($\pm$1)& {\bf 53} ($\pm$5) \\ \hline
+\texttt{NBP-RTDP} 			& 	{\bf 9935} ($\pm$1031)	&	{\bf -12.4} ($\pm$1)& {\bf 53} ($\pm$5) \\ \hline
 \texttt{RTDP+Opt}  		&	26663 ($\pm$2298)		&	-17.4 ($\pm$4) 		& 129($\pm$35) \\
-\texttt{LP-RTDP+Opt} 		& 	{\bf 9675} ($\pm$953)	&	{\bf -11.5} ($\pm$1)	&{\bf 93} ($\pm$10) \\ \hline
+\texttt{NBP-RTDP+Opt} 		& 	{\bf 9675} ($\pm$953)	&	{\bf -11.5} ($\pm$1)	&{\bf 93} ($\pm$10) \\ \hline
 \texttt{RTDP+MA}  		&	31083 ($\pm$2468)		&	-21.7	 ($\pm$5)		&336 ($\pm$28) \\
-\texttt{LP-RTDP+MA}  		& 	{\bf 9854} ($\pm$1034)	&	{\bf -11.7} ($\pm$1)	&{\bf 162} ($\pm$17) \\ %\hline
+\texttt{NBP-RTDP+MA}  		& 	{\bf 9854} ($\pm$1034)	&	{\bf -11.7} ($\pm$1)	&{\bf 162} ($\pm$17) \\ %\hline
 %\texttt{RTDP+MA+Opt}  	&	27143($\pm$2380)		&	-16.9($\pm$3.0)	&	323($\pm$38)		\\ 
-%\texttt{LP-RTDP+MA+Opt} & 	{\bf 10622($\pm$1046)}	&	{\bf -13.4($\pm$1.0)}	&	{\bf 237($\pm$29)}		\\
+%\texttt{NBP-RTDP+MA+Opt} & 	{\bf 10622($\pm$1046)}	&	{\bf -13.4($\pm$1.0)}	&	{\bf 237($\pm$29)}		\\
 \bottomrule
 \end{tabular}
 \caption{Priors with Temporally Extended Actions}
