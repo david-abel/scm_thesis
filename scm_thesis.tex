@@ -64,7 +64,7 @@ In particular, we introduce {\it goal-based action priors}~\cite{abel2015goal}, 
 
 % --- Acknowledgements ---
 \section*{Acknowledgements}
-This work would not have been possible without the help of my Advisor Professor Stefanie Tellex, whose guidance, support, and wealth of knowledge were essential for carrying out this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their critical contributions to this project, and for the many wonderful discussions that led to the central ideas introduced in this document. A special thanks to my mother, father, and brother for letting me bounce ideas off of them for the past two years, and for always supporting me. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including David Whitney, Dilip Arumagum, Emily Wu, Greg Yauney, Izaak Baker, Jeremy Joachim, John Oberlin, Kevin O'Farrell, Professor Michael Littman, Miles Eldon, Nakul Goppalan, Ryan Izant, and Stephen Brawner.
+This work would not have been possible without the help of my Advisor Professor Stefanie Tellex, whose guidance, support, and wealth of knowledge were essential for carrying out this research. Additionally, I would like to thank Ellis Hershkowitz, James MacGlashan, and Gabriel Barth-Maron for their critical contributions to this project, and for the many wonderful discussions that led to the central ideas introduced in this document. A special thanks to my mother, father, and brother for letting me bounce ideas off of them for the past two years, and for always supporting me. Lastly, I would like to thank the other members of the Humans to Robots laboratory, including David Whitney, Dilip Arumagum, Emily Wu, Greg Yauney, Izaak Baker, Jeremy Joachim, John Oberlin, Kevin O'Farrell, Professor Michael Littman, Miles Eldon, Nakul Gopalan, Ryan Izant, and Stephen Brawner.
 
 % --- Table Of Contents ---
 \newpage
@@ -179,7 +179,7 @@ There are a variety of methods for solving MDPs. Here we introduce some of the b
 \subsubsection{Value Iteration}
 
 
-Value Iteration~\cite{bellman57} effectively takes the Bellman Equation from Equation~\ref{eq:bellman_equation} and turns it into an update rule. The agent considers applying each action in each state, and performs a full update on its approximation of the value function. Value Iteration terminates when the change in the value function from one iteration to the next is tiny (i.e. below some provided valued $\varepsilon$). Psueocode for Value Iteration is provided in Algorithm~\ref{alg:value_iteration}.
+Value Iteration~\cite{bellman57} effectively takes the Bellman Equation from Equation~\ref{eq:bellman_equation} and turns it into an update rule. The agent considers applying each action in each state, and performs a full update on its approximation of the value function. Value Iteration terminates when the change in the value function from one iteration to the next is tiny (i.e. below some provided valued $\varepsilon$). Psuedocode for Value Iteration is provided in Algorithm~\ref{alg:value_iteration}.
 
 % Value Iteration Pseudo Code
 \begin{algorithm}
